@@ -32,10 +32,16 @@ python -m http.server 8000
 
 ## 배포
 
-`main` 브랜치 푸시 시 Vercel이 자동 배포한다.
+- **운영 URL:** https://java-lecture.vercel.app
+- **GitHub:** https://github.com/kitae104/java-lecture
+- **클린 URL:** `/network/socket_lecture.html` ↔ `/network/socket_lecture` 양쪽 모두 동작
 
-- 운영 URL: 배포 후 본 README에 추가
-- 클린 URL: `/network/socket_lecture.html` ↔ `/network/socket_lecture` 양쪽 모두 동작
+GitHub 푸시 자동 배포를 원하면 [Vercel 프로젝트 설정 > Git](https://vercel.com/aqua0405-2866s-projects/java-lecture/settings/git) 에서 `kitae104/java-lecture` 저장소를 연결하면 된다(현재는 CLI 기반 수동 배포 상태).
+
+수동 배포:
+```bash
+vercel --prod --scope aqua0405-2866s-projects
+```
 
 ## 강의 작성
 
