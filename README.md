@@ -36,9 +36,15 @@ python -m http.server 8000
 - **GitHub:** https://github.com/kitae104/java-lecture
 - **클린 URL:** `/network/socket_lecture.html` ↔ `/network/socket_lecture` 양쪽 모두 동작
 
-GitHub 푸시 자동 배포를 원하면 [Vercel 프로젝트 설정 > Git](https://vercel.com/aqua0405-2866s-projects/java-lecture/settings/git) 에서 `kitae104/java-lecture` 저장소를 연결하면 된다(현재는 CLI 기반 수동 배포 상태).
+`main` 브랜치에 푸시하면 Vercel이 자동으로 production 배포한다 (GitHub App 연동, 푸시 후 보통 1분 이내). 그 외 브랜치 푸시는 preview URL이 자동 생성된다.
 
-수동 배포:
+```bash
+git add .
+git commit -m "..."
+git push origin main      # → 자동 배포
+```
+
+수동 배포(폴백, 거의 쓸 일 없음):
 ```bash
 vercel --prod --scope aqua0405-2866s-projects
 ```
