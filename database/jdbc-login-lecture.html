@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 17-5 · JDBC + Swing 로그인 구현 | Java 강의자료</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #ffffff;
+    --bg2:       #f8fafc;
+    --bg3:       #f1f5f9;
+    --border:    #e2e8f0;
+    --border2:   #cbd5e1;
+    --text:      #0f172a;
+    --text2:     #475569;
+    --text3:     #94a3b8;
+    --accent:    #2563eb;
+    --accent-lt: #eff4ff;
+    --green:     #15803d;
+    --green-lt:  #ecfdf5;
+    --orange:    #c2410c;
+    --orange-lt: #fffbeb;
+    --red:       #dc2626;
+    --red-lt:    #fef2f2;
+    --purple:    #6d28d9;
+    --purple-lt: #f5f3ff;
+    --teal:      #0891b2;
+    --teal-lt:   #ecfeff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow:    0 2px 6px rgba(15,23,42,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.7; }
+
+  /* ── 헤더 ── */
+  .page-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 2.8rem 3rem 2.4rem; position: relative; overflow: hidden; }
+  .page-header::before { content: ''; position: absolute; top: -80px; right: -80px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(37,99,235,.08) 0%, transparent 70%); pointer-events: none; }
+  .breadcrumb { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: .8rem; display: flex; align-items: center; gap: 6px; }
+  .breadcrumb span { color: var(--text3); }
+  .step-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: rgba(37,99,235,.08); border: 1px solid rgba(37,99,235,.2); border-radius: 4px; padding: 3px 12px; margin-bottom: 1rem; }
+  .page-title { font-size: 2rem; font-weight: 700; color: var(--text); margin-bottom: .5rem; line-height: 1.3; }
+  .page-sub { font-size: 14px; color: var(--text2); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1.4rem; }
+  .tag { font-size: 11px; font-family: var(--mono); font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--bg); border: 1px solid var(--border2); color: var(--text2); }
+
+  /* ── 본문 ── */
+  .content { max-width: 980px; margin: 0 auto; padding: 2.5rem 2rem 5rem; display: flex; flex-direction: column; gap: 2rem; }
+
+  /* ── 카드 ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); overflow: hidden; }
+  .card-head { display: flex; align-items: center; gap: 10px; padding: .9rem 1.4rem; background: var(--bg3); border-bottom: 1px solid var(--border); }
+  .sec-num { font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--accent); background: var(--accent-lt); border: 1px solid rgba(37,99,235,.2); border-radius: 5px; padding: 2px 8px; }
+  .sec-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .card-body { padding: 1.5rem 1.8rem; }
+
+  /* ── 텍스트 ── */
+  .desc { font-size: 14px; color: var(--text2); line-height: 1.85; }
+  .desc + .desc { margin-top: .6rem; }
+  .desc strong { color: var(--text); font-weight: 600; }
+  .desc code { font-family: var(--mono); font-size: 12.5px; color: var(--orange); background: var(--orange-lt); border: 1px solid rgba(217,119,6,.15); border-radius: 4px; padding: 1px 6px; }
+
+  /* ── 변경 카드 ── */
+  .change-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: .8rem; }
+  .change-card { border-radius: 10px; padding: 1rem 1.1rem; border: 1px solid var(--border); background: var(--bg2); }
+  .change-card-icon { font-size: 22px; margin-bottom: .5rem; }
+  .change-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: .3rem; }
+  .change-card-desc { font-size: 12.5px; color: var(--text2); line-height: 1.65; }
+  .change-card-desc code { font-family: var(--mono); font-size: 11.5px; color: var(--orange); background: var(--orange-lt); border-radius: 3px; padding: 0 4px; }
+  .change-card.blue   { border-color: rgba(37,99,235,.25);  background: var(--accent-lt); }
+  .change-card.green  { border-color: rgba(5,150,105,.25);  background: var(--green-lt); }
+  .change-card.purple { border-color: rgba(124,58,237,.25); background: var(--purple-lt); }
+  .change-card.orange { border-color: rgba(217,119,6,.25);  background: var(--orange-lt); }
+  .change-card.teal   { border-color: rgba(8,145,178,.25);  background: var(--teal-lt); }
+  .change-card.red    { border-color: rgba(220,38,38,.25);  background: var(--red-lt); }
+
+  /* ── 코드 탭 ── */
+  .code-tabs { display: flex; gap: 4px; padding: .8rem 1.2rem .7rem; background: var(--bg3); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab-btn { font-size: 12px; font-weight: 600; font-family: var(--mono); padding: 5px 14px; border-radius: 6px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .tab-btn.active-blue   { background: var(--accent-lt); color: var(--accent); border-color: rgba(37,99,235,.35); }
+  .tab-btn.active-green  { background: var(--green-lt);  color: var(--green);  border-color: rgba(5,150,105,.35); }
+  .tab-panel { display: none; }
+  .tab-panel.show { display: block; }
+
+  /* ── 코드 블록 ── */
+  .code-bar { display: flex; align-items: center; justify-content: space-between; padding: .6rem 1.2rem; background: var(--bg3); border-bottom: 1px solid var(--border); }
+  .code-file-info { display: flex; align-items: center; gap: 8px; }
+  .dot-row { display: flex; gap: 5px; }
+  .win-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .win-dot-r { background: #ff5f57; } .win-dot-y { background: #febc2e; } .win-dot-g { background: #28c840; }
+  .filename { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
+  .filename .ext { color: var(--accent); }
+  .copy-btn { display: flex; align-items: center; gap: 5px; font-size: 11.5px; font-family: var(--mono); padding: 4px 11px; border-radius: 6px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; transition: all .15s; }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+  .copy-btn.ok { color: var(--green); border-color: var(--green); background: var(--green-lt); }
+  pre { margin: 0; padding: 1.4rem 1.6rem; background: #1e2235; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.85; tab-size: 4; color: #c9d1e9; }
+  .kw   { color: #7dd3fc; font-weight: 500; }
+  .kw2  { color: #a78bfa; }
+  .type { color: #86efac; }
+  .str  { color: #fde68a; }
+  .cm   { color: #6272a4; font-style: italic; }
+  .num  { color: #fb923c; }
+  .fn   { color: #f472b6; }
+  .cls  { color: #34d399; }
+  .ann  { color: #facc15; }
+  .hi   { background: rgba(5,150,105,.13); display: block; }
+  .hi2  { background: rgba(37,99,235,.11); display: block; }
+  .hi3  { background: rgba(220,38,38,.10); display: block; }
+  .hi4  { background: rgba(124,58,237,.11); display: block; }
+
+  /* ── 설명 테이블 ── */
+  .ex-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 1.2rem; }
+  .ex-table th { text-align: left; padding: .55rem .9rem; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text3); background: var(--bg3); border-bottom: 1.5px solid var(--border2); }
+  .ex-table td { padding: .6rem .9rem; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; line-height: 1.65; }
+  .ex-table tr:last-child td { border-bottom: none; }
+  .ex-table tr:hover td { background: var(--bg3); }
+  .ex-table code { font-family: var(--mono); font-size: 12px; color: var(--orange); background: var(--orange-lt); border: 1px solid rgba(217,119,6,.12); border-radius: 3px; padding: 1px 5px; white-space: nowrap; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: var(--mono); white-space: nowrap; }
+  .badge-blue   { background: var(--accent-lt); color: var(--accent); border: 1px solid rgba(37,99,235,.2); }
+  .badge-green  { background: var(--green-lt);  color: var(--green);  border: 1px solid rgba(5,150,105,.2); }
+  .badge-purple { background: var(--purple-lt); color: var(--purple); border: 1px solid rgba(124,58,237,.2); }
+  .badge-orange { background: var(--orange-lt); color: var(--orange); border: 1px solid rgba(217,119,6,.2); }
+  .badge-teal   { background: var(--teal-lt);   color: var(--teal);   border: 1px solid rgba(8,145,178,.2); }
+  .badge-red    { background: var(--red-lt);    color: var(--red);    border: 1px solid rgba(220,38,38,.2); }
+
+  /* ── 흐름 단계 ── */
+  .flow-steps { display: flex; flex-direction: column; gap: 8px; margin-top: .5rem; }
+  .flow-step { display: flex; align-items: flex-start; gap: 14px; padding: .9rem 1.1rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; transition: box-shadow .15s; }
+  .flow-step:hover { box-shadow: var(--shadow-sm); }
+  .flow-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; font-family: var(--mono); flex-shrink: 0; margin-top: 1px; color: #fff; }
+  .flow-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .flow-desc { font-size: 12.5px; color: var(--text2); margin-top: 3px; line-height: 1.65; }
+  .flow-desc code { font-family: var(--mono); font-size: 11.5px; color: var(--orange); background: var(--orange-lt); border-radius: 3px; padding: 0 4px; }
+  .flow-connector { width: 2px; height: 10px; background: var(--border2); margin-left: 27px; }
+
+  /* ── 포인트 카드 ── */
+  .point-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: .5rem; }
+  .point-card { border-radius: 10px; padding: 1rem; border: 1px solid var(--border); background: var(--bg3); }
+  .point-icon { font-size: 20px; margin-bottom: .4rem; }
+  .point-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: .3rem; }
+  .point-body { font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+  .point-body code { font-family: var(--mono); font-size: 11.5px; color: var(--orange); background: var(--orange-lt); border-radius: 3px; padding: 0 4px; }
+
+  /* ── 인포 박스 ── */
+  .info-box { display: flex; gap: 10px; padding: .9rem 1.1rem; border-radius: 8px; font-size: 13px; line-height: 1.7; margin-top: 1rem; border: 1px solid; }
+  .info-box.blue   { background: var(--accent-lt); border-color: rgba(37,99,235,.2); color: #1d4ed8; }
+  .info-box.green  { background: var(--green-lt);  border-color: rgba(5,150,105,.2);  color: #166534; }
+  .info-box.orange { background: var(--orange-lt); border-color: rgba(217,119,6,.2);  color: #92400e; }
+  .info-box.purple { background: var(--purple-lt); border-color: rgba(124,58,237,.2); color: #5b21b6; }
+  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── 보안 경고 박스 ── */
+  .danger-box { background: var(--red-lt); border: 1.5px solid rgba(220,38,38,.3); border-radius: 10px; padding: 1.1rem 1.3rem; margin-top: 1rem; }
+  .danger-title { font-size: 13px; font-weight: 700; color: var(--red); margin-bottom: .5rem; display: flex; align-items: center; gap: 6px; }
+  .danger-body { font-size: 13px; color: #7f1d1d; line-height: 1.75; }
+  .danger-body code { font-family: var(--mono); font-size: 12px; color: var(--red); background: rgba(220,38,38,.08); border-radius: 3px; padding: 0 5px; }
+
+  /* ── 클래스 관계 다이어그램 ── */
+  .arch-wrap { display: flex; align-items: center; justify-content: center; gap: 0; margin: 1.2rem 0 .5rem; flex-wrap: wrap; }
+  .arch-box { border-radius: 12px; padding: 1.1rem 1.4rem; text-align: center; border: 1.5px solid; min-width: 160px; }
+  .arch-box.login-box { background: var(--accent-lt); border-color: rgba(37,99,235,.3); }
+  .arch-box.db-box    { background: var(--green-lt);  border-color: rgba(5,150,105,.3); }
+  .arch-box.mysql-box { background: var(--purple-lt); border-color: rgba(124,58,237,.3); }
+  .arch-icon { font-size: 28px; margin-bottom: .4rem; }
+  .arch-label { font-size: 13px; font-weight: 700; color: var(--text); }
+  .arch-sub   { font-size: 11px; color: var(--text2); margin-top: 3px; font-family: var(--mono); }
+  .arch-arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 12px; gap: 2px; }
+  .arch-arrow-line { font-size: 20px; color: var(--text3); }
+  .arch-arrow-label { font-size: 10px; font-family: var(--mono); color: var(--text3); white-space: nowrap; }
+
+  /* ── GUI 미리보기 ── */
+  .login-mock { max-width: 320px; margin: 1.2rem auto 0; border: 1.5px solid var(--border2); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); }
+  .win-title-bar { display: flex; align-items: center; gap: 6px; padding: .5rem .8rem; font-size: 12px; font-weight: 700; color: var(--text2); background: var(--bg3); border-bottom: 1px solid var(--border); }
+  .login-body { background: #dc2626; padding: .8rem; }
+  .login-center { background: #fff; border-radius: 6px; padding: .8rem; display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .mock-label { font-size: 12px; font-weight: 700; color: var(--text2); text-align: center; padding: 0 8px; }
+  .mock-input { background: var(--bg); border: 1px solid var(--border2); border-radius: 4px; padding: 4px 8px; font-size: 11px; color: var(--text2); font-family: var(--mono); width: 100%; }
+  .mock-pw { letter-spacing: 3px; color: var(--text3); }
+  .login-south { background: rgba(0,0,0,.15); padding: .5rem; display: flex; justify-content: center; }
+  .mock-btn-login { background: var(--accent); color: #fff; border: none; border-radius: 5px; padding: 6px 20px; font-size: 12px; font-weight: 700; cursor: default; }
+
+  /* ── 레이아웃 구조 다이어그램 ── */
+  .layout-tree { margin: 1rem 0 .5rem; border: 1.5px solid var(--border2); border-radius: 10px; overflow: hidden; }
+  .lt-head { background: var(--bg3); border-bottom: 1px solid var(--border); padding: .5rem 1rem; font-size: 11px; font-weight: 700; color: var(--text2); }
+  .lt-body { background: #1e2235; padding: 1.1rem 1.6rem; font-family: var(--mono); font-size: 12px; line-height: 2.1; color: #c9d1e9; }
+  .lt-tag  { color: #7dd3fc; }
+  .lt-val  { color: #86efac; }
+  .lt-cm   { color: #6272a4; font-style: italic; }
+  .lt-prop { color: #fde68a; }
+  .lt-i    { display: inline-block; width: 22px; }
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="page-header">
+  <div class="breadcrumb">Chapter 17 <span>›</span> 데이터베이스 연동 <span>›</span> 실습 5</div>
+  <div class="step-badge">Step 2 of 2 · JDBC + Swing 통합</div>
+  <h1 class="page-title">JDBC + Swing 로그인 구현<br><span style="font-weight:300;font-size:1.5rem">DB 유틸 클래스 분리 · GUI 로그인 폼 · ID/PW 인증</span></h1>
+  <p class="page-sub">DB 연결을 전담하는 <code>DB.java</code>와 Swing GUI 로그인 화면인 <code>Login.java</code>로 역할을 분리 — GridLayout 폼 설계부터 ResultSet 기반 인증 로직까지</p>
+  <div class="tag-row">
+    <span class="tag">DB 클래스 분리</span>
+    <span class="tag">JPasswordField</span>
+    <span class="tag">GridLayout</span>
+    <span class="tag">BorderLayout 중첩</span>
+    <span class="tag">static Connection</span>
+    <span class="tag">ResultSet 인증</span>
+    <span class="tag">dispose()</span>
+    <span class="tag">JOptionPane</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- 01 전체 구조 -->
+  <div class="card">
+    <div class="card-head"><span class="sec-num">01</span><span class="sec-title">전체 구조 — 클래스 역할 분리</span></div>
+    <div class="card-body">
+      <p class="desc">
+        이전 예제(<code>JDBC_Test.java</code>)는 main() 하나에 DB 연결·쿼리·화면이 모두 섞여 있었습니다.
+        이번 예제는 <strong>DB 연결 전담 클래스(<code>DB.java</code>)</strong>와
+        <strong>GUI 로그인 화면(<code>Login.java</code>)</strong>으로 역할을 분리합니다.
+        이것이 실제 개발에서 사용하는 <strong>관심사 분리(Separation of Concerns)</strong> 패턴의 시작입니다.
+      </p>
+
+      <div class="arch-wrap" style="margin-top:1.4rem;">
+        <div class="arch-box login-box">
+          <div class="arch-icon">🖥</div>
+          <div class="arch-label">Login.java</div>
+          <div class="arch-sub">GUI 화면 · 이벤트 처리</div>
+          <div class="arch-sub" style="margin-top:4px; color:var(--accent)">extends JFrame</div>
+        </div>
+        <div class="arch-arrow">
+          <div class="arch-arrow-line">→</div>
+          <div class="arch-arrow-label">DB.getResultSet(sql)</div>
+          <div class="arch-arrow-label">DB.executeQuery(sql)</div>
+        </div>
+        <div class="arch-box db-box">
+          <div class="arch-icon">🗃</div>
+          <div class="arch-label">DB.java</div>
+          <div class="arch-sub">DB 연결 유틸리티</div>
+          <div class="arch-sub" style="margin-top:4px; color:var(--green)">static 메서드 제공</div>
+        </div>
+        <div class="arch-arrow">
+          <div class="arch-arrow-line">→</div>
+          <div class="arch-arrow-label">JDBC</div>
+          <div class="arch-arrow-label">Connection</div>
+        </div>
+        <div class="arch-box mysql-box">
+          <div class="arch-icon">🐬</div>
+          <div class="arch-label">MySQL / Oracle</div>
+          <div class="arch-sub">MEMBER 테이블</div>
+          <div class="arch-sub" style="margin-top:4px; color:var(--purple)">ID · PW · AGE · NAME</div>
+        </div>
+      </div>
+
+      <div class="change-grid" style="margin-top:1rem">
+        <div class="change-card blue">
+          <div class="change-card-icon">🖥</div>
+          <div class="change-card-title">Login.java — 화면 담당</div>
+          <div class="change-card-desc">JFrame 상속. GridLayout으로 ID/PW 입력폼 구성. 버튼 이벤트에서 <code>DB</code> 클래스 메서드 호출</div>
+        </div>
+        <div class="change-card green">
+          <div class="change-card-icon">🗃</div>
+          <div class="change-card-title">DB.java — DB 담당</div>
+          <div class="change-card-desc">static으로 Connection·Statement 보유. <code>init()</code>으로 연결 초기화, <code>getResultSet()</code>·<code>executeQuery()</code> 제공</div>
+        </div>
+        <div class="change-card purple">
+          <div class="change-card-icon">🔐</div>
+          <div class="change-card-title">JPasswordField</div>
+          <div class="change-card-desc">비밀번호 입력 전용 컴포넌트. 입력 시 <code>●●●</code>로 마스킹 표시. <code>getText()</code>로 실제 값 읽기</div>
+        </div>
+        <div class="change-card orange">
+          <div class="change-card-icon">🔍</div>
+          <div class="change-card-title">ResultSet 인증</div>
+          <div class="change-card-desc">ID·PW 조건 SELECT 후 <code>rs.next()</code>로 행 존재 여부 확인. 행이 있으면 로그인 성공</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 GUI 미리보기 + 레이아웃 구조 -->
+  <div class="card">
+    <div class="card-head"><span class="sec-num">02</span><span class="sec-title">GUI 레이아웃 구조 — BorderLayout 중첩 + GridLayout</span></div>
+    <div class="card-body">
+      <p class="desc">
+        JFrame → <strong>panBase(BorderLayout)</strong> → CENTER: <strong>panCenter(GridLayout 2×2)</strong> + SOUTH: <strong>panSouth(FlowLayout)</strong>
+        의 3단 중첩 구조입니다. 배경색 <code>Color.RED</code>는 레이아웃 확인을 위한 시각적 디버깅 기법입니다.
+      </p>
+
+      <!-- GUI 미리보기 -->
+      <div class="login-mock">
+        <div class="win-title-bar">
+          <span class="win-dot win-dot-r"></span>
+          <span class="win-dot win-dot-y"></span>
+          <span class="win-dot win-dot-g"></span>
+          &nbsp;Login (300 × 150)
+        </div>
+        <div class="login-body">
+          <div class="login-center">
+            <div class="mock-label">ID :</div>
+            <div class="mock-input">A1</div>
+            <div class="mock-label">PW :</div>
+            <div class="mock-input mock-pw">●●●</div>
+          </div>
+          <div class="login-south">
+            <div class="mock-btn-login">로그인</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 레이아웃 트리 -->
+      <div class="layout-tree" style="margin-top:1.4rem">
+        <div class="lt-head">🏗 레이아웃 계층 구조 — panBase 기준</div>
+        <div class="lt-body">
+<span class="lt-tag">JFrame</span> <span class="lt-cm">← setLayout(BorderLayout)</span>
+<br>
+<span class="lt-i"></span><span class="lt-tag">panBase</span> <span class="lt-cm">← BorderLayout, background=</span><span style="color:#f87171">RED</span>
+<br>
+<span class="lt-i"></span><span class="lt-i"></span><span class="lt-tag">panCenter</span> <span class="lt-cm">← GridLayout(2, 2), emptyBorder(10,10,10,20) — [CENTER]</span>
+<br>
+<span class="lt-i"></span><span class="lt-i"></span><span class="lt-i"></span><span class="lt-prop">lbl1</span> <span class="lt-cm">JLabel("ID :", CENTER)</span>
+<br>
+<span class="lt-i"></span><span class="lt-i"></span><span class="lt-i"></span><span class="lt-prop">tfID</span>  <span class="lt-cm">JTextField("A1", 15) — 초기값 A1</span>
+<br>
+<span class="lt-i"></span><span class="lt-i"></span><span class="lt-i"></span><span class="lt-prop">lbl2</span> <span class="lt-cm">JLabel("PW :", CENTER)</span>
+<br>
+<span class="lt-i"></span><span class="lt-i"></span><span class="lt-i"></span><span class="lt-prop">tfPW</span>  <span class="lt-cm">JPasswordField("777", 15) — 입력 마스킹</span>
+<br>
+<span class="lt-i"></span><span class="lt-i"></span><span class="lt-tag">panSouth</span> <span class="lt-cm">← FlowLayout(default) — [SOUTH]</span>
+<br>
+<span class="lt-i"></span><span class="lt-i"></span><span class="lt-i"></span><span class="lt-prop">btnLogin</span> <span class="lt-cm">JButton("로그인") — ActionListener 등록</span>
+        </div>
+      </div>
+
+      <table class="ex-table">
+        <thead><tr><th style="width:22%">레이아웃</th><th style="width:18%">적용 패널</th><th>특징 및 역할</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>BorderLayout</code></td>
+            <td>JFrame, panBase</td>
+            <td>CENTER(주 영역)·SOUTH(하단 버튼)로 영역 분할. 창 크기 변경 시 CENTER가 확장됨</td>
+          </tr>
+          <tr>
+            <td><code>GridLayout(2, 2)</code></td>
+            <td>panCenter</td>
+            <td>2행 2열 격자. 레이블·입력창이 순서대로 좌→우, 위→아래 배치. 칸 크기 동일</td>
+          </tr>
+          <tr>
+            <td><code>FlowLayout</code></td>
+            <td>panSouth</td>
+            <td>컴포넌트를 가운데 정렬로 나열 (JPanel 기본값). 버튼 하나이므로 자동 중앙 배치</td>
+          </tr>
+          <tr>
+            <td><code>EmptyBorder</code></td>
+            <td>panCenter</td>
+            <td><code>createEmptyBorder(10,10,10,20)</code> — 상·좌·하 10px, 우 20px 여백. 레이블과 입력창 사이 여유 공간</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box blue" style="margin-top:1rem">
+        <span class="icon">💡</span>
+        <span>
+          <code>panBase.setBackground(Color.RED)</code>는 <strong>레이아웃 디버깅</strong> 기법입니다.
+          panCenter와 panSouth가 정확히 채워지면 빨간 배경이 보이지 않아야 합니다.
+          실제 배포 시에는 제거하거나 원하는 색상으로 변경합니다.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 소스 코드 탭 -->
+  <div class="card">
+    <div class="card-head"><span class="sec-num">03</span><span class="sec-title">소스 코드</span></div>
+    <div class="code-tabs" id="tabs1">
+      <button class="tab-btn active-blue" onclick="switchTab('panel-login','panel-db','tabs1',this,'active-blue')">Login.java</button>
+      <button class="tab-btn" onclick="switchTab('panel-db','panel-login','tabs1',this,'active-green')">DB.java</button>
+    </div>
+
+    <!-- Login.java -->
+    <div class="tab-panel show" id="panel-login">
+      <div class="code-bar">
+        <div class="code-file-info">
+          <div class="dot-row"><span class="win-dot win-dot-r"></span><span class="win-dot win-dot-y"></span><span class="win-dot win-dot-g"></span></div>
+          <span class="filename">Login<span class="ext">.java</span></span>
+          <span style="font-size:10px;color:var(--accent);background:var(--accent-lt);border:1px solid rgba(37,99,235,.2);border-radius:3px;padding:1px 6px;font-family:var(--mono)">GUI · 이벤트</span>
+        </div>
+        <button class="copy-btn" onclick="copyCode('code-login',this)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          복사
+        </button>
+      </div>
+      <pre id="code-login"><span class="kw2">package</span> inhatc.cse.java.chap17.ex5_login;
+
+<span class="kw2">import</span> javax.swing.*;
+<span class="kw2">import</span> java.awt.*;
+<span class="kw2">import</span> java.awt.event.ActionEvent;
+<span class="kw2">import</span> java.awt.event.ActionListener;
+<span class="kw2">import</span> java.sql.ResultSet;
+<span class="kw2">import</span> java.sql.SQLException;
+
+<span class="kw">public class</span> <span class="cls">Login</span> <span class="kw">extends</span> <span class="cls">JFrame</span> <span class="kw">implements</span> <span class="cls">ActionListener</span> {
+
+    <span class="cm">// ── GUI 컴포넌트 필드 ────────────────────────────────────</span>
+    <span class="kw">private</span> <span class="type">JPanel</span>         panBase, panCenter, panSouth;
+    <span class="kw">private</span> <span class="type">JButton</span>        btnLogin;
+    <span class="kw">private</span> <span class="type">JLabel</span>         lbl1, lbl2;
+    <span class="kw">private</span> <span class="type">JTextField</span>     tfID;
+<span class="hi">    <span class="kw">private</span> <span class="type">JPasswordField</span> tfPW;   <span class="cm">// 비밀번호 전용 — 입력시 ●●● 마스킹</span></span>
+
+    <span class="kw">public</span> <span class="fn">Login</span>(String title, <span class="kw">int</span> width, <span class="kw">int</span> height) {
+        <span class="fn">setTitle</span>(title);
+        <span class="fn">setSize</span>(width, height);
+        <span class="fn">setLocation</span>(<span class="num">300</span>, <span class="num">300</span>);
+        <span class="fn">setDefaultCloseOperation</span>(JFrame.EXIT_ON_CLOSE);
+        <span class="fn">setLayout</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+
+        <span class="fn">createPanBase</span>();   <span class="cm">// 루트 패널 생성 → 내부에서 Center/South 패널 생성</span>
+        <span class="fn">setVisible</span>(<span class="kw">true</span>);
+    }
+
+    <span class="cm">// ── 루트 패널: 배경 빨강, BorderLayout ────────────────────</span>
+    <span class="kw">private void</span> <span class="fn">createPanBase</span>() {
+        panBase = <span class="kw">new</span> <span class="cls">JPanel</span>();
+        panBase.<span class="fn">setLayout</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+<span class="hi">        panBase.<span class="fn">setBackground</span>(Color.RED);   <span class="cm">// 레이아웃 디버깅용 배경색</span></span>
+
+        <span class="fn">createPanCenter</span>();
+        panBase.<span class="fn">add</span>(panCenter, BorderLayout.CENTER);
+        <span class="fn">createPanSouth</span>();
+        panBase.<span class="fn">add</span>(panSouth, BorderLayout.SOUTH);
+
+        <span class="fn">add</span>(panBase);   <span class="cm">// JFrame에 루트 패널 추가</span>
+    }
+
+    <span class="cm">// ── 중앙 패널: GridLayout 2×2 — ID/PW 입력폼 ─────────────</span>
+    <span class="kw">private void</span> <span class="fn">createPanCenter</span>() {
+        panCenter = <span class="kw">new</span> <span class="cls">JPanel</span>();
+<span class="hi2">        panCenter.<span class="fn">setLayout</span>(<span class="kw">new</span> <span class="cls">GridLayout</span>(<span class="num">2</span>, <span class="num">2</span>));   <span class="cm">// 2행 2열</span></span>
+        panCenter.<span class="fn">setBorder</span>(BorderFactory.<span class="fn">createEmptyBorder</span>(<span class="num">10</span>, <span class="num">10</span>, <span class="num">10</span>, <span class="num">20</span>));
+
+        lbl1 = <span class="kw">new</span> <span class="cls">JLabel</span>(<span class="str">"ID :"</span>, JLabel.CENTER);
+        tfID = <span class="kw">new</span> <span class="cls">JTextField</span>(<span class="str">"A1"</span>, <span class="num">15</span>);     <span class="cm">// 초기값 "A1"</span>
+
+        lbl2 = <span class="kw">new</span> <span class="cls">JLabel</span>(<span class="str">"PW :"</span>, JLabel.CENTER);
+<span class="hi">        tfPW = <span class="kw">new</span> <span class="cls">JPasswordField</span>(<span class="str">"777"</span>, <span class="num">15</span>);  <span class="cm">// 초기값 "777", 마스킹 표시</span></span>
+
+        <span class="cm">// GridLayout은 add 순서대로 좌→우, 위→아래 채움</span>
+        panCenter.<span class="fn">add</span>(lbl1);  panCenter.<span class="fn">add</span>(tfID);
+        panCenter.<span class="fn">add</span>(lbl2);  panCenter.<span class="fn">add</span>(tfPW);
+    }
+
+    <span class="cm">// ── 하단 패널: 로그인 버튼 ────────────────────────────────</span>
+    <span class="kw">private void</span> <span class="fn">createPanSouth</span>() {
+        panSouth = <span class="kw">new</span> <span class="cls">JPanel</span>();   <span class="cm">// 기본 FlowLayout</span>
+        btnLogin = <span class="kw">new</span> <span class="cls">JButton</span>(<span class="str">"로그인"</span>);
+        btnLogin.<span class="fn">addActionListener</span>(<span class="kw">this</span>);
+        panSouth.<span class="fn">add</span>(btnLogin);
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) {
+<span class="hi">        DB.<span class="fn">init</span>();   <span class="cm">// ← DB 연결 먼저 초기화 (주석 해제 필요)</span></span>
+        <span class="kw">new</span> <span class="cls">Login</span>(<span class="str">"Login"</span>, <span class="num">300</span>, <span class="num">150</span>);
+    }
+
+    <span class="cm">// ── 버튼 이벤트 처리 ──────────────────────────────────────</span>
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">actionPerformed</span>(<span class="type">ActionEvent</span> e) {
+        Object obj = e.<span class="fn">getSource</span>();
+
+        <span class="kw">if</span> (obj == btnLogin) {
+            <span class="type">String</span> id = tfID.<span class="fn">getText</span>();
+<span class="hi">            <span class="type">String</span> pw = tfPW.<span class="fn">getText</span>();   <span class="cm">// JPasswordField도 getText()로 읽기</span></span>
+
+            <span class="kw">boolean</span> check = <span class="fn">checkIDPW</span>(id, pw);
+
+<span class="hi2">            <span class="kw">if</span> (check) {
+                System.out.<span class="fn">println</span>(<span class="str">"로그인 성공"</span>);
+                <span class="kw">this</span>.<span class="fn">dispose</span>();   <span class="cm">// 현재 창 닫기 (종료X) → 다음 폼 띄울 자리</span>
+            } <span class="kw">else</span> {</span>
+<span class="hi3">                System.out.<span class="fn">println</span>(<span class="str">"로그인 실패"</span>);
+                <span class="cls">JOptionPane</span>.<span class="fn">showMessageDialog</span>(<span class="kw">null</span>, <span class="str">"로그인 실패했습니다."</span>);
+                tfID.<span class="fn">setText</span>(<span class="str">""</span>);   tfPW.<span class="fn">setText</span>(<span class="str">""</span>);
+                tfID.<span class="fn">requestFocus</span>();   <span class="cm">// 포커스를 ID 입력창으로</span></span>
+            }
+        }
+    }
+
+    <span class="cm">// ── DB 인증 메서드 ────────────────────────────────────────</span>
+    <span class="kw">private boolean</span> <span class="fn">checkIDPW</span>(String id, String pw) {
+        <span class="kw">boolean</span> check = <span class="kw">false</span>;
+<span class="hi3">        <span class="cm">// ⚠ SQL Injection 취약: 입력값을 직접 문자열 연결</span>
+        <span class="type">String</span> sql = <span class="str">"SELECT * FROM MEMBER WHERE ID = '"</span>
+                   + id + <span class="str">"' AND PW='"</span> + pw + <span class="str">"'"</span>;</span>
+        System.out.<span class="fn">println</span>(sql);
+        <span class="type">ResultSet</span> rs = DB.<span class="fn">getResultSet</span>(sql);   <span class="cm">// DB 클래스에 위임</span>
+
+        <span class="kw">try</span> {
+<span class="hi">            <span class="kw">if</span> (rs.<span class="fn">next</span>()) {            <span class="cm">// 해당 ID/PW 행이 있으면 → 로그인 성공</span>
+                System.out.<span class="fn">println</span>(rs.<span class="fn">getString</span>(<span class="num">1</span>));
+                check = <span class="kw">true</span>;
+            } <span class="kw">else</span> {
+                System.out.<span class="fn">println</span>(<span class="str">"해당 사용자가 없습니다."</span>);
+                check = <span class="kw">false</span>;
+            }</span>
+        } <span class="kw">catch</span> (<span class="type">SQLException</span> ex) { ex.<span class="fn">printStackTrace</span>(); }
+
+        <span class="kw">return</span> check;
+    }
+}</pre>
+
+      <div style="padding:1.2rem 1.6rem; border-top:1px solid var(--border)">
+        <table class="ex-table">
+          <thead><tr><th style="width:38%">코드</th><th style="width:12%">분류</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>extends JFrame implements ActionListener</code></td>
+              <td><span class="badge badge-blue">구조</span></td>
+              <td>JFrame 상속으로 창 기능 확보. ActionListener 구현으로 버튼 이벤트 처리. <code>actionPerformed()</code> 재정의 필수</td>
+            </tr>
+            <tr>
+              <td><code>JPasswordField tfPW</code></td>
+              <td><span class="badge badge-blue">GUI</span></td>
+              <td>비밀번호 입력 전용 컴포넌트. 입력 내용을 <code>●</code>로 마스킹. JTextField의 하위 클래스이므로 <code>getText()</code> 동일 사용</td>
+            </tr>
+            <tr>
+              <td><code>GridLayout(2, 2)</code></td>
+              <td><span class="badge badge-blue">GUI</span></td>
+              <td>2행 2열 격자. <code>add()</code> 순서대로 Row 1: lbl1·tfID, Row 2: lbl2·tfPW 배치. 모든 칸 크기 동일</td>
+            </tr>
+            <tr>
+              <td><code>createEmptyBorder(10,10,10,20)</code></td>
+              <td><span class="badge badge-blue">GUI</span></td>
+              <td>panCenter 안쪽 여백(padding). 순서: 상·좌·하·우. 오른쪽 여백 20px로 입력창이 레이블에서 조금 떨어짐</td>
+            </tr>
+            <tr>
+              <td><code>DB.init()</code> — main()에서 호출</td>
+              <td><span class="badge badge-green">DB</span></td>
+              <td>GUI 창 생성 전에 DB 연결 초기화. 현재 주석 처리됨 — 실행 시 반드시 활성화해야 로그인 가능</td>
+            </tr>
+            <tr>
+              <td><code>this.dispose()</code></td>
+              <td><span class="badge badge-purple">이벤트</span></td>
+              <td>현재 JFrame을 닫음. <code>System.exit()</code>과 달리 JVM은 종료되지 않음 → 로그인 성공 후 다음 화면으로 전환할 때 사용</td>
+            </tr>
+            <tr>
+              <td><code>DB.getResultSet(sql)</code></td>
+              <td><span class="badge badge-green">DB</span></td>
+              <td>SQL 실행을 DB 클래스에 위임. ResultSet 반환 — <code>rs.next()</code>로 해당 ID/PW 행 존재 여부 확인</td>
+            </tr>
+            <tr>
+              <td><code>rs.getString(1)</code></td>
+              <td><span class="badge badge-green">DB</span></td>
+              <td>컬럼명 대신 인덱스(1=첫 번째 컬럼=ID) 사용. 로그인 성공 시 해당 ID 콘솔 출력</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DB.java -->
+    <div class="tab-panel" id="panel-db">
+      <div class="code-bar">
+        <div class="code-file-info">
+          <div class="dot-row"><span class="win-dot win-dot-r"></span><span class="win-dot win-dot-y"></span><span class="win-dot win-dot-g"></span></div>
+          <span class="filename">DB<span class="ext">.java</span></span>
+          <span style="font-size:10px;color:var(--green);background:var(--green-lt);border:1px solid rgba(5,150,105,.2);border-radius:3px;padding:1px 6px;font-family:var(--mono)">DB 유틸리티</span>
+        </div>
+        <button class="copy-btn" onclick="copyCode('code-db',this)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          복사
+        </button>
+      </div>
+      <pre id="code-db"><span class="kw2">package</span> inhatc.cse.java.chap17.ex5_login;
+
+<span class="kw2">import</span> java.sql.*;
+
+<span class="kw">public class</span> <span class="cls">DB</span> {
+
+    <span class="cm">// ── static 필드: 클래스 전체에서 하나의 연결 공유 ─────────</span>
+<span class="hi">    <span class="kw">public static</span> <span class="type">Connection</span> conn;   <span class="cm">// DB 연결 객체</span>
+    <span class="kw">public static</span> <span class="type">Statement</span>  stmt;   <span class="cm">// SQL 실행 객체</span></span>
+
+    <span class="cm">// ── DB 초기화: 드라이버 로드 + 연결 수립 ─────────────────</span>
+    <span class="kw">public static void</span> <span class="fn">init</span>() {
+        <span class="kw">try</span> {
+<span class="hi4">            <span class="cm">// Oracle 드라이버 (이 예제 코드의 원본)
+            // MySQL로 전환 시 아래 두 줄 수정 필요</span>
+            <span class="cls">Class</span>.<span class="fn">forName</span>(<span class="str">"oracle.jdbc.driver.OracleDriver"</span>);
+            conn = <span class="cls">DriverManager</span>.<span class="fn">getConnection</span>(
+                    <span class="str">"jdbc:oracle:thin:@127.0.0.1:1521:XE"</span>,
+                    <span class="str">"kitae"</span>, <span class="str">"1111"</span>);</span>
+
+            <span class="cm">// MySQL 사용 시 → 아래 코드로 교체
+            // Class.forName("com.mysql.cj.jdbc.Driver");
+            // conn = DriverManager.getConnection(
+            //         "jdbc:mysql://localhost:3306/javastudy",
+            //         "root", "1111");</span>
+
+            stmt = conn.<span class="fn">createStatement</span>();
+            System.out.<span class="fn">println</span>(<span class="str">"DB 연결 성공"</span>);
+        } <span class="kw">catch</span> (<span class="type">ClassNotFoundException</span> e) {
+            System.out.<span class="fn">println</span>(<span class="str">"JDBC 드라이버 로드 에러"</span>);
+            e.<span class="fn">printStackTrace</span>();
+        } <span class="kw">catch</span> (<span class="type">SQLException</span> e) {
+            System.err.<span class="fn">println</span>(<span class="str">"DB 연결 오류 또는 쿼리 오류 입니다."</span>);
+            e.<span class="fn">printStackTrace</span>();
+        }
+    }
+
+    <span class="cm">// ── SELECT 전용: ResultSet 반환 ───────────────────────────</span>
+<span class="hi">    <span class="kw">public static</span> <span class="type">ResultSet</span> <span class="fn">getResultSet</span>(String sql) {
+        <span class="kw">try</span> {
+            <span class="type">Statement</span> stmt = conn.<span class="fn">createStatement</span>();   <span class="cm">// 매번 새 Statement 생성</span>
+            <span class="kw">return</span> stmt.<span class="fn">executeQuery</span>(sql);
+        } <span class="kw">catch</span> (<span class="type">Exception</span> e) {
+            System.out.<span class="fn">println</span>(e);
+            <span class="kw">return</span> <span class="kw">null</span>;
+        }
+    }</span>
+
+    <span class="cm">// ── INSERT · UPDATE · DELETE 전용 ────────────────────────</span>
+<span class="hi2">    <span class="kw">public static void</span> <span class="fn">executeQuery</span>(String sql) {
+        <span class="kw">try</span> {
+            stmt.<span class="fn">executeUpdate</span>(sql);   <span class="cm">// 클래스 필드 stmt 사용</span>
+        } <span class="kw">catch</span> (<span class="type">SQLException</span> e) {
+            e.<span class="fn">printStackTrace</span>();
+        }
+    }</span>
+}</pre>
+
+      <div style="padding:1.2rem 1.6rem; border-top:1px solid var(--border)">
+        <table class="ex-table">
+          <thead><tr><th style="width:38%">코드</th><th style="width:12%">분류</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>public static Connection conn</code></td>
+              <td><span class="badge badge-green">설계</span></td>
+              <td>static 필드로 선언 → <code>DB.conn</code>으로 어디서든 접근. 프로그램 전체에서 하나의 연결을 공유 (싱글턴 패턴 유사)</td>
+            </tr>
+            <tr>
+              <td><code>DB.init()</code></td>
+              <td><span class="badge badge-green">초기화</span></td>
+              <td>드라이버 로드 + Connection + Statement 초기화. <code>main()</code>에서 GUI 생성 전에 가장 먼저 호출해야 함</td>
+            </tr>
+            <tr>
+              <td><code>oracle.jdbc.driver.OracleDriver</code></td>
+              <td><span class="badge badge-orange">주의</span></td>
+              <td>원본 코드는 Oracle DB 설정. MySQL 사용 시 드라이버 클래스명과 JDBC URL을 MySQL용으로 변경해야 함 (주석 참고)</td>
+            </tr>
+            <tr>
+              <td><code>getResultSet(sql)</code> — 새 Statement 생성</td>
+              <td><span class="badge badge-green">SELECT</span></td>
+              <td>매 호출마다 <code>conn.createStatement()</code>로 새 Statement 생성. 클래스 필드 <code>stmt</code>와 별도 — ResultSet이 닫히지 않도록</td>
+            </tr>
+            <tr>
+              <td><code>executeQuery(sql)</code> — 필드 stmt 사용</td>
+              <td><span class="badge badge-purple">DML</span></td>
+              <td>INSERT·UPDATE·DELETE 전용. 클래스 필드 <code>stmt</code> 재사용. 메서드명이 <code>executeQuery</code>이지만 실제는 <code>executeUpdate()</code> 호출 — 혼동 주의</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 로그인 인증 흐름 -->
+  <div class="card">
+    <div class="card-head"><span class="sec-num">04</span><span class="sec-title">로그인 인증 흐름 — 성공 / 실패 분기</span></div>
+    <div class="card-body">
+
+      <!-- 인증 흐름도 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:1rem;">
+        <!-- 성공 -->
+        <div>
+          <div style="font-size:11px; font-weight:700; color:var(--green); font-family:var(--mono); margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em;">✅ 로그인 성공 흐름</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--accent); width:22px; height:22px; font-size:10px;">1</div>
+              <div><div class="flow-title" style="font-size:12px;">버튼 클릭 → tfID, tfPW 읽기</div></div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--accent); width:22px; height:22px; font-size:10px;">2</div>
+              <div><div class="flow-title" style="font-size:12px;">checkIDPW(id, pw) 호출</div></div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--purple); width:22px; height:22px; font-size:10px;">3</div>
+              <div><div class="flow-title" style="font-size:12px;">DB.getResultSet(sql) 실행</div></div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--green); width:22px; height:22px; font-size:10px;">4</div>
+              <div><div class="flow-title" style="font-size:12px;">rs.next() == true</div><div class="flow-desc" style="font-size:11.5px;">해당 ID/PW 행 존재</div></div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--green); width:22px; height:22px; font-size:10px;">5</div>
+              <div><div class="flow-title" style="font-size:12px;">"로그인 성공" + this.dispose()</div><div class="flow-desc" style="font-size:11.5px;">창 닫기 → 다음 화면으로</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- 실패 -->
+        <div>
+          <div style="font-size:11px; font-weight:700; color:var(--red); font-family:var(--mono); margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em;">❌ 로그인 실패 흐름</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--accent); width:22px; height:22px; font-size:10px;">1</div>
+              <div><div class="flow-title" style="font-size:12px;">버튼 클릭 → tfID, tfPW 읽기</div></div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--accent); width:22px; height:22px; font-size:10px;">2</div>
+              <div><div class="flow-title" style="font-size:12px;">checkIDPW(id, pw) 호출</div></div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--purple); width:22px; height:22px; font-size:10px;">3</div>
+              <div><div class="flow-title" style="font-size:12px;">DB.getResultSet(sql) 실행</div></div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--red); width:22px; height:22px; font-size:10px;">4</div>
+              <div><div class="flow-title" style="font-size:12px;">rs.next() == false</div><div class="flow-desc" style="font-size:11.5px;">일치하는 행 없음</div></div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:var(--red); width:22px; height:22px; font-size:10px;">5</div>
+              <div><div class="flow-title" style="font-size:12px;">팝업 → 입력창 초기화 → 포커스</div><div class="flow-desc" style="font-size:11.5px;"><code>setText("")</code> + <code>requestFocus()</code></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SQL 인증 쿼리 -->
+      <div style="font-size:12px; font-weight:700; color:var(--text2); margin-top:1rem; margin-bottom:6px; font-family:var(--mono);">🔍 인증에 사용되는 SQL</div>
+      <pre style="border-radius:8px; font-size:12px;"><span class="cm">-- id="A1", pw="777" 입력 시 생성되는 SQL</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> MEMBER <span class="kw">WHERE</span> ID = <span class="str">'A1'</span> <span class="kw">AND</span> PW=<span class="str">'777'</span>
+
+<span class="cm">-- rs.next()가 true  → 해당 회원 존재 → 로그인 성공
+-- rs.next()가 false → 해당 회원 없음 → 로그인 실패</span></pre>
+
+      <div class="danger-box">
+        <div class="danger-title">🚨 SQL Injection 취약점 — checkIDPW() 내부</div>
+        <div class="danger-body">
+          입력값을 문자열로 직접 연결하므로, 악의적 입력 시 인증 우회 가능합니다.<br><br>
+          <strong>공격 예시:</strong> ID에 <code>' OR '1'='1</code> 입력 →<br>
+          생성 SQL: <code>SELECT * FROM MEMBER WHERE ID='' OR '1'='1' AND PW='...'</code><br>
+          → WHERE 조건이 항상 참 → PW 모르고도 <code>rs.next()</code>가 true 반환 → 로그인 성공<br><br>
+          <strong>해결책 → PreparedStatement 사용:</strong><br>
+          <code>PreparedStatement ps = conn.prepareStatement("SELECT * FROM MEMBER WHERE ID=? AND PW=?");</code><br>
+          <code>ps.setString(1, id);  ps.setString(2, pw);</code><br>
+          <code>ResultSet rs = ps.executeQuery();</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 DB.java 설계 포인트 -->
+  <div class="card">
+    <div class="card-head"><span class="sec-num">05</span><span class="sec-title">DB.java 설계 포인트 — static 유틸리티 패턴</span></div>
+    <div class="card-body">
+      <p class="desc">
+        <code>DB.java</code>는 모든 필드와 메서드를 <strong>static</strong>으로 선언합니다.
+        <code>new DB()</code> 없이 <code>DB.init()</code>, <code>DB.getResultSet()</code>처럼
+        클래스 이름으로 직접 호출하는 <strong>유틸리티 클래스</strong> 패턴입니다.
+      </p>
+
+      <div class="change-grid" style="margin-top:1rem">
+        <div class="change-card blue">
+          <div class="change-card-icon">🔗</div>
+          <div class="change-card-title">static Connection 공유</div>
+          <div class="change-card-desc">
+            <code>DB.conn</code>은 JVM 메모리에 하나만 존재.
+            <code>init()</code>으로 한 번 연결하면 프로그램 종료까지 재사용 가능
+          </div>
+        </div>
+        <div class="change-card green">
+          <div class="change-card-icon">🔀</div>
+          <div class="change-card-title">메서드 역할 분리</div>
+          <div class="change-card-desc">
+            <code>getResultSet()</code>: SELECT → ResultSet 반환<br>
+            <code>executeQuery()</code>: INSERT·UPDATE·DELETE → 반환값 없음
+          </div>
+        </div>
+        <div class="change-card orange">
+          <div class="change-card-icon">⚠️</div>
+          <div class="change-card-title">메서드명 혼동 주의</div>
+          <div class="change-card-desc">
+            <code>DB.executeQuery()</code>는 이름과 달리 내부에서
+            <code>stmt.executeUpdate()</code> 호출 — DML 전용임을 기억할 것
+          </div>
+        </div>
+        <div class="change-card purple">
+          <div class="change-card-icon">📋</div>
+          <div class="change-card-title">getResultSet의 Statement</div>
+          <div class="change-card-desc">
+            매번 <code>conn.createStatement()</code>로 새 Statement 생성.
+            이전 ResultSet이 열려 있어도 충돌 없이 독립 실행 가능
+          </div>
+        </div>
+      </div>
+
+      <!-- Oracle vs MySQL 비교 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:1.2rem;">
+        <div>
+          <div style="font-size:11px; font-weight:700; color:var(--purple); font-family:var(--mono); margin-bottom:6px; text-transform:uppercase;">🟠 Oracle (원본 코드)</div>
+          <pre style="border-radius:8px; font-size:11.5px; padding:1rem;"><span class="cls">Class</span>.<span class="fn">forName</span>(
+  <span class="str">"oracle.jdbc.driver.OracleDriver"</span>
+);
+conn = <span class="cls">DriverManager</span>.<span class="fn">getConnection</span>(
+  <span class="str">"jdbc:oracle:thin:@127.0.0.1:1521:XE"</span>,
+  <span class="str">"kitae"</span>, <span class="str">"1111"</span>
+);</pre>
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; color:var(--green); font-family:var(--mono); margin-bottom:6px; text-transform:uppercase;">🐬 MySQL (전환 코드)</div>
+          <pre style="border-radius:8px; font-size:11.5px; padding:1rem;"><span class="cls">Class</span>.<span class="fn">forName</span>(
+  <span class="str">"com.mysql.cj.jdbc.Driver"</span>
+);
+conn = <span class="cls">DriverManager</span>.<span class="fn">getConnection</span>(
+  <span class="str">"jdbc:mysql://localhost:3306/javastudy"</span>,
+  <span class="str">"root"</span>, <span class="str">"1111"</span>
+);</pre>
+        </div>
+      </div>
+
+      <div class="info-box orange" style="margin-top:1rem">
+        <span class="icon">⚠️</span>
+        <span>
+          <code>Login.java</code>의 <code>main()</code>에서 <code>DB.init()</code>이 주석 처리되어 있습니다.
+          실행 전 <strong>반드시 주석을 해제</strong>하고, 사용 중인 DB(Oracle 또는 MySQL)에 맞게
+          드라이버 클래스명과 JDBC URL을 수정해야 합니다.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 dispose() vs System.exit() -->
+  <div class="card">
+    <div class="card-head"><span class="sec-num">06</span><span class="sec-title">dispose() vs System.exit() — 창 닫기의 차이</span></div>
+    <div class="card-body">
+      <p class="desc">
+        로그인 성공 후 <code>this.dispose()</code>를 호출합니다.
+        <code>System.exit()</code>과 달리 JVM을 종료하지 않으므로
+        <strong>다음 화면(메인 폼 등)을 연속으로 띄울 수 있습니다.</strong>
+      </p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:1rem;">
+        <div class="change-card red">
+          <div class="change-card-icon">💀</div>
+          <div class="change-card-title">System.exit(0)</div>
+          <div class="change-card-desc">
+            JVM 전체 종료. 모든 스레드, 창, 리소스가 강제 해제.<br><br>
+            로그인 성공 후 사용하면 프로그램 자체가 종료되므로 로그인 화면에서 <strong>사용 금지</strong>
+          </div>
+        </div>
+        <div class="change-card green">
+          <div class="change-card-icon">✅</div>
+          <div class="change-card-title">this.dispose()</div>
+          <div class="change-card-desc">
+            현재 JFrame 창만 닫고 메모리 해제. JVM은 계속 실행.<br><br>
+            <code>dispose()</code> 이후 <code>new MainFrame()</code> 등으로 다음 화면을 띄울 수 있음
+          </div>
+        </div>
+      </div>
+
+      <pre style="margin-top:1rem; border-radius:8px; font-size:12px;"><span class="kw">if</span> (check) {
+    System.out.<span class="fn">println</span>(<span class="str">"로그인 성공"</span>);
+    <span class="kw">this</span>.<span class="fn">dispose</span>();          <span class="cm">// 로그인 창 닫기</span>
+    <span class="cm">// new MainFrame();       ← 여기에 다음 화면 코드 추가</span>
+}</pre>
+    </div>
+  </div>
+
+  <!-- 07 핵심 포인트 -->
+  <div class="card">
+    <div class="card-head"><span class="sec-num">07</span><span class="sec-title">핵심 포인트 정리</span></div>
+    <div class="card-body">
+      <div class="point-grid">
+        <div class="point-card">
+          <div class="point-icon">🗃</div>
+          <div class="point-title">DB 클래스 분리</div>
+          <div class="point-body">DB 연결 로직을 별도 클래스로 분리 → GUI 코드가 깔끔해짐. <code>DB.메서드()</code> 형태로 어디서든 호출</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🔐</div>
+          <div class="point-title">JPasswordField</div>
+          <div class="point-body">비밀번호 입력 시 <code>●</code>로 자동 마스킹. JTextField 하위 클래스이므로 <code>getText()</code> 동일 사용</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🏗</div>
+          <div class="point-title">GridLayout(2,2)</div>
+          <div class="point-body">레이블·입력창 쌍을 정렬된 격자로 배치. <code>add()</code> 순서가 곧 배치 순서</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🔍</div>
+          <div class="point-title">ResultSet 인증</div>
+          <div class="point-body">ID·PW 조건 SELECT → <code>rs.next()</code> 결과로 인증 판단. true=성공, false=실패</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🪟</div>
+          <div class="point-title">dispose() 화면 전환</div>
+          <div class="point-body">로그인 성공 시 <code>this.dispose()</code>로 현재 창만 닫기. JVM 유지 → 다음 창 생성 가능</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🛡</div>
+          <div class="point-title">PreparedStatement로 개선</div>
+          <div class="point-body">SQL Injection 방지를 위해 <code>?</code> 플레이스홀더 + <code>setString()</code> 사용 필수. 이 코드의 핵심 개선 과제</div>
+        </div>
+      </div>
+
+      <div class="info-box purple" style="margin-top:1.2rem">
+        <span class="icon">📌</span>
+        <span>
+          <strong>실행 순서:</strong>
+          ① <code>DB.init()</code> 주석 해제 → ② DB 종류에 맞게 드라이버·URL 수정 →
+          ③ MySQL이면 MEMBER 테이블에 테스트 데이터 삽입 → ④ <code>Login.main()</code> 실행 →
+          ⑤ ID: <code>A1</code> / PW: 실제 DB 비밀번호 입력 후 로그인 버튼 클릭
+        </span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab(showId, hideIds, tabsId, btn, activeClass) {
+  document.getElementById(showId).classList.add('show');
+  hideIds.split(',').forEach(id => document.getElementById(id.trim()).classList.remove('show'));
+  document.getElementById(tabsId).querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.remove('active-blue','active-green','active-orange','active-purple')
+  );
+  btn.classList.add(activeClass);
+}
+function copyCode(id, btn) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = '✓ 복사됨'; btn.classList.add('ok');
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 복사';
+      btn.classList.remove('ok');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>

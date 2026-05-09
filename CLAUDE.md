@@ -195,11 +195,14 @@ Java_Lecture/
 
 1. **카테고리 폴더 확인 / 생성** — `network/`, `thread/` 등.
 2. **`socket_lecture.html`을 템플릿으로 복사** — `<head>` 안 `:root` 토큰과 `<style>` 블록 그대로 유지.
-3. **헤더·섹션 콘텐츠 교체** — Chapter 번호, 제목, meta-chips를 새 주제에 맞게.
+3. **헤더·섹션 콘텐츠 교체** — `<title>Chapter NN-N · ...`, `<h1 class="page-title">`, `<p class="page-sub">`, `<span class="tag">` 또는 `<span class="chip">` 가 자동 인덱스 추출의 입력. 누락 없이 채울 것.
 4. **이미지가 필요하면** `images/`에 추가하고 `/images/{name}.png` 형태로 참조.
-5. **`index.html`의 카드 그리드에 새 카드 추가** — 동일 카테고리 섹션 안에 `<a class="card" href="./<category>/<topic>_lecture.html">` 형태로.
+5. **인덱스 카드 자동 생성** — `node scripts/build-index.js` 한 줄. `index.html` 안의 `<!-- AUTO-CARDS:START --> ... <!-- AUTO-CARDS:END -->` 사이를 통째 재생성한다. 직접 손대지 말 것.
+   - 새 카테고리(폴더)를 도입할 때만 `scripts/build-index.js` 의 `CATEGORIES` 배열에 한 줄 추가. 폴더에 강의 HTML이 0개면 자동으로 `(예정)` 라벨이 붙는다.
+   - 카테고리별 “예정” 카드를 노출하고 싶으면 같은 배열의 `upcoming` 항목으로 정의.
 6. **로컬 미리보기:** `npx serve .` 또는 `python -m http.server 8000` 으로 띄워 `/` → 카드 클릭 → 강의 라우팅 확인.
-7. **커밋 + 푸시.** Vercel이 자동 배포.
+7. **커밋 + 푸시 (한 방에):** `pwsh ./scripts/publish.ps1 -Commit -Push -Message "feat: add <topic> lecture"`. Vercel 이 자동 빌드/배포.
+   - 단계별로 보고 싶다면: 인자 없이 실행 → 빌드 + 상태 확인만, `-Commit` → 빌드 + 커밋, 추가로 `-Push` → 푸시까지.
 
 ---
 

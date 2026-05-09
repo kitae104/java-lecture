@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 17-0 · IntelliJ Swing UI Form 기초 | Java 강의자료</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #ffffff;
+    --bg2:       #f8fafc;
+    --bg3:       #f1f5f9;
+    --border:    #e2e8f0;
+    --border2:   #cbd5e1;
+    --text:      #0f172a;
+    --text2:     #475569;
+    --text3:     #94a3b8;
+    --accent:    #2563eb;
+    --accent2:   #1d4ed8;
+    --accent-lt: #eff4ff;
+    --green:     #15803d;
+    --green-lt:  #ecfdf5;
+    --orange:    #c2410c;
+    --orange-lt: #fffbeb;
+    --red:       #dc2626;
+    --red-lt:    #fef2f2;
+    --pink:      #be185d;
+    --yellow:    #a16207;
+    --purple:    #6d28d9;
+    --purple-lt: #f5f3ff;
+    --teal:      #0891b2;
+    --teal-lt:   #ecfeff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 2px 6px rgba(15,23,42,0.06);
+    --shadow:    0 2px 6px rgba(15,23,42,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+  }
+
+  /* ── 헤더 ── */
+  .page-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    padding: 2.8rem 3rem 2.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: .8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .breadcrumb span { color: var(--text3); }
+  .step-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(37,99,235,.08);
+    border: 1px solid rgba(37,99,235,.2);
+    border-radius: 4px;
+    padding: 3px 12px;
+    margin-bottom: 1rem;
+  }
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .5rem;
+    line-height: 1.3;
+  }
+  .page-sub { font-size: 14px; color: var(--text2); }
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 1.4rem;
+  }
+  .tag {
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+
+  /* ── 본문 ── */
+  .content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* ── 섹션 카드 ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: .9rem 1.4rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .sec-num {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent);
+    background: var(--accent-lt);
+    border: 1px solid rgba(37,99,235,.2);
+    border-radius: 5px;
+    padding: 2px 8px;
+  }
+  .sec-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .card-body {
+    padding: 1.5rem 1.8rem;
+  }
+
+  /* ── 텍스트 ── */
+  .desc {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.85;
+  }
+  .desc + .desc { margin-top: .6rem; }
+  .desc strong { color: var(--text); font-weight: 600; }
+  .desc code, .inline-code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--orange);
+    background: var(--orange-lt);
+    border: 1px solid rgba(217,119,6,.15);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+
+  /* ── 변경 포인트 카드 ── */
+  .change-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: .5rem;
+  }
+  .change-card {
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .change-card-icon { font-size: 22px; margin-bottom: .5rem; }
+  .change-card-title {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    margin-bottom: .3rem; display: flex; align-items: center; gap: 6px;
+  }
+  .change-card-desc { font-size: 12.5px; color: var(--text2); line-height: 1.65; }
+  .change-card-desc code {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--orange); background: var(--orange-lt);
+    border-radius: 3px; padding: 0 4px;
+  }
+  .change-card.blue   { border-color: rgba(37,99,235,.25);  background: var(--accent-lt); }
+  .change-card.green  { border-color: rgba(5,150,105,.25);  background: var(--green-lt); }
+  .change-card.purple { border-color: rgba(124,58,237,.25); background: var(--purple-lt); }
+  .change-card.orange { border-color: rgba(217,119,6,.25);  background: var(--orange-lt); }
+  .change-card.teal   { border-color: rgba(8,145,178,.25);  background: var(--teal-lt); }
+
+  /* ── GUI 미리보기 ── */
+  .window-mock {
+    border: 1.5px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    max-width: 420px;
+    margin: 1rem auto 0;
+  }
+  .win-title-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: .5rem .8rem;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .win-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .win-dot-r { background: #ff5f57; }
+  .win-dot-y { background: #febc2e; }
+  .win-dot-g { background: #28c840; }
+  .win-body { background: #fff; padding: .8rem; }
+  .mock-textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .6rem .8rem;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text2);
+    height: 100px;
+    margin-bottom: 8px;
+    line-height: 1.7;
+    width: 100%;
+  }
+  .mock-input-row {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .mock-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .mock-btn {
+    font-size: 11px; font-weight: 700;
+    padding: 5px 12px; border-radius: 5px;
+    border: none; color: #fff;
+    background: var(--accent); cursor: default;
+  }
+
+  /* ── IntelliJ UI Designer 레이아웃 다이어그램 ── */
+  .layout-diagram {
+    margin: 1rem 0 .5rem;
+    border: 1.5px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .ld-head {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: .5rem 1rem;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ld-body {
+    background: #1e2235;
+    padding: 1.2rem 1.6rem;
+    color: #c9d1e9;
+    line-height: 2;
+  }
+  .ld-root   { color: #f472b6; font-weight: 700; }
+  .ld-border { color: #7dd3fc; }
+  .ld-comp   { color: #86efac; }
+  .ld-prop   { color: #fde68a; font-size: 11px; }
+  .ld-arrow  { color: #6272a4; }
+  .ld-indent { display: inline-block; width: 20px; }
+
+  /* ── 코드 블록 ── */
+  .code-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .6rem 1.2rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-file-info { display: flex; align-items: center; gap: 8px; }
+  .dot-row { display: flex; gap: 5px; }
+  .filename { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
+  .filename .ext { color: var(--accent); }
+  .copy-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-family: var(--mono);
+    padding: 4px 11px; border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--bg2); color: var(--text2);
+    cursor: pointer; transition: all .15s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+  .copy-btn.ok { color: var(--green); border-color: var(--green); background: var(--green-lt); }
+  pre {
+    margin: 0;
+    padding: 1.4rem 1.6rem;
+    background: #1e2235;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.85;
+    tab-size: 4;
+    color: #c9d1e9;
+  }
+  .kw   { color: #7dd3fc; font-weight: 500; }
+  .kw2  { color: #a78bfa; }
+  .type { color: #86efac; }
+  .str  { color: #fde68a; }
+  .cm   { color: #6272a4; font-style: italic; }
+  .num  { color: #fb923c; }
+  .fn   { color: #f472b6; }
+  .cls  { color: #34d399; }
+  .ann  { color: #facc15; }
+  .hi   { background: rgba(5,150,105,.14); }
+  .hi2  { background: rgba(37,99,235,.12); }
+
+  /* ── 설명 테이블 ── */
+  .ex-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 1.2rem;
+  }
+  .ex-table th {
+    text-align: left;
+    padding: .55rem .9rem;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text3); background: var(--bg3);
+    border-bottom: 1.5px solid var(--border2);
+  }
+  .ex-table td {
+    padding: .6rem .9rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2); vertical-align: top; line-height: 1.65;
+  }
+  .ex-table tr:last-child td { border-bottom: none; }
+  .ex-table tr:hover td { background: var(--bg3); }
+  .ex-table code {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--orange); background: var(--orange-lt);
+    border: 1px solid rgba(217,119,6,.12);
+    border-radius: 3px; padding: 1px 5px; white-space: nowrap;
+  }
+  .badge {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px;
+    font-family: var(--mono); white-space: nowrap;
+  }
+  .badge-blue   { background: var(--accent-lt); color: var(--accent); border: 1px solid rgba(37,99,235,.2); }
+  .badge-green  { background: var(--green-lt);  color: var(--green);  border: 1px solid rgba(5,150,105,.2); }
+  .badge-purple { background: var(--purple-lt); color: var(--purple); border: 1px solid rgba(124,58,237,.2); }
+  .badge-orange { background: var(--orange-lt); color: var(--orange); border: 1px solid rgba(217,119,6,.2); }
+  .badge-teal   { background: var(--teal-lt);   color: var(--teal);   border: 1px solid rgba(8,145,178,.2); }
+
+  /* ── 실행 흐름 ── */
+  .flow-steps { display: flex; flex-direction: column; gap: 8px; margin-top: .5rem; }
+  .flow-step {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: .9rem 1.1rem;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; transition: box-shadow .15s;
+  }
+  .flow-step:hover { box-shadow: var(--shadow-sm); }
+  .flow-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; font-family: var(--mono);
+    flex-shrink: 0; margin-top: 1px; color: #fff;
+  }
+  .flow-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .flow-desc  { font-size: 12.5px; color: var(--text2); margin-top: 2px; line-height: 1.6; }
+  .flow-desc code {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--orange); background: var(--orange-lt);
+    border-radius: 3px; padding: 0 4px;
+  }
+
+  /* ── 포인트 카드 ── */
+  .point-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px; margin-top: .5rem;
+  }
+  .point-card {
+    border-radius: 10px; padding: 1rem;
+    border: 1px solid var(--border); background: var(--bg3);
+  }
+  .point-icon { font-size: 20px; margin-bottom: .4rem; }
+  .point-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: .3rem; }
+  .point-body { font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+  .point-body code {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--orange); background: var(--orange-lt);
+    border-radius: 3px; padding: 0 4px;
+  }
+
+  /* ── 인포 박스 ── */
+  .info-box {
+    display: flex; gap: 10px;
+    padding: .9rem 1.1rem; border-radius: 8px;
+    font-size: 13px; color: var(--text2);
+    line-height: 1.7; margin-top: 1rem; border: 1px solid;
+  }
+  .info-box.blue   { background: var(--accent-lt); border-color: rgba(37,99,235,.2); color: #1d4ed8; }
+  .info-box.green  { background: var(--green-lt);  border-color: rgba(5,150,105,.2);  color: #166534; }
+  .info-box.orange { background: var(--orange-lt); border-color: rgba(217,119,6,.2);  color: #92400e; }
+  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── 비교 박스 ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr;
+    gap: 0; align-items: start; margin-top: 1rem;
+  }
+  .compare-col { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .compare-head {
+    padding: .6rem 1rem; font-size: 12px; font-weight: 700;
+    letter-spacing: .05em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .compare-head.before { background: #fef9ec; color: var(--orange); border-bottom: 1px solid #fde68a; }
+  .compare-head.after  { background: var(--accent-lt); color: var(--accent); border-bottom: 1px solid rgba(37,99,235,.15); }
+  .compare-body {
+    padding: .9rem 1rem; font-size: 12.5px;
+    font-family: var(--mono); color: var(--text2);
+    line-height: 1.8; background: var(--bg2);
+  }
+  .compare-body .added   { color: var(--green); font-weight: 500; }
+  .compare-body .removed { color: var(--red); text-decoration: line-through; }
+  .arrow-mid {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--text3); padding-top: 36px;
+  }
+
+  /* ── IntelliJ 단계 이미지 대체 ── */
+  .intellij-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px; margin-top: .8rem;
+  }
+  .ij-step {
+    border: 1.5px solid var(--border2);
+    border-radius: 10px; overflow: hidden;
+  }
+  .ij-step-head {
+    padding: .5rem .9rem;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ij-step-head.s1 { background: #eff4ff; color: var(--accent); }
+  .ij-step-head.s2 { background: var(--green-lt); color: var(--green); }
+  .ij-step-head.s3 { background: var(--purple-lt); color: var(--purple); }
+  .ij-step-body {
+    padding: .8rem 1rem;
+    font-size: 12px; color: var(--text2);
+    background: var(--bg2); line-height: 1.7;
+  }
+  .ij-step-body code {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--orange); background: var(--orange-lt);
+    border-radius: 3px; padding: 0 4px;
+  }
+  .ij-step-body strong { color: var(--text); font-weight: 600; }
+  .menu-path {
+    display: inline-flex; flex-wrap: wrap; gap: 2px; align-items: center;
+    font-family: var(--mono); font-size: 11.5px;
+  }
+  .menu-item {
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 1px 6px; color: var(--text);
+  }
+  .menu-arrow { color: var(--text3); font-size: 10px; }
+
+  /* ── .form XML 하이라이트 ── */
+  .xml-tag   { color: #7dd3fc; }
+  .xml-attr  { color: #fde68a; }
+  .xml-val   { color: #86efac; }
+  .xml-cm    { color: #6272a4; font-style: italic; }
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="page-header">
+  <div class="breadcrumb">Chapter 17 <span>›</span> GUI 프로그래밍 <span>›</span> 실습 0</div>
+  <div class="step-badge">Step 0 of 3 · UI Form 기초</div>
+  <h1 class="page-title">IntelliJ Swing UI Form<br><span style="font-weight:300;font-size:1.5rem">GUI 폼 디자이너로 JFrame 만들기</span></h1>
+  <p class="page-sub">IntelliJ의 GUI Form Designer(.form)를 사용해 JFrame 레이아웃을 시각적으로 설계하고, ActionListener로 버튼 이벤트를 처리하는 기초 예제</p>
+  <div class="tag-row">
+    <span class="tag">JFrame</span>
+    <span class="tag">JTextArea</span>
+    <span class="tag">JTextField</span>
+    <span class="tag">JButton</span>
+    <span class="tag">ActionListener</span>
+    <span class="tag">BorderLayout</span>
+    <span class="tag">.form (UI Designer)</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- 01 Swing UI Form이란? -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">01</span>
+      <span class="sec-title">IntelliJ Swing UI Form 이란?</span>
+    </div>
+    <div class="card-body">
+      <p class="desc">
+        IntelliJ IDEA에는 Swing 컴포넌트를 <strong>드래그 앤 드롭</strong>으로 배치할 수 있는
+        <strong>GUI Form Designer</strong>가 내장되어 있습니다.
+        디자이너에서 UI를 구성하면 <code>.form</code>(XML) 파일이 자동 생성되고,
+        연결된 <code>.java</code> 클래스에 <strong>필드 바인딩</strong>이 선언됩니다.
+      </p>
+      <p class="desc" style="margin-top:.6rem">
+        코드로 직접 <code>new JTextField()</code>를 작성하는 대신,
+        <strong>시각적 편집기</strong>에서 컴포넌트를 배치하고 속성을 설정하면
+        런타임에 자동으로 UI가 구성됩니다.
+      </p>
+
+      <div class="compare-grid" style="margin-top:1.2rem">
+        <div class="compare-col">
+          <div class="compare-head before">📝 코드 직접 작성 방식</div>
+          <div class="compare-body">
+            <div>JPanel panel = <span style="color:#7dd3fc">new</span> JPanel();</div>
+            <div>panel.setLayout(</div>
+            <div>&nbsp;&nbsp;<span style="color:#7dd3fc">new</span> BorderLayout());</div>
+            <div>JTextArea ta = <span style="color:#7dd3fc">new</span> JTextArea();</div>
+            <div>JTextField tf = <span style="color:#7dd3fc">new</span> JTextField();</div>
+            <div>JButton btn = <span style="color:#7dd3fc">new</span> JButton("전송");</div>
+            <div>panel.add(ta, BorderLayout.CENTER);</div>
+            <div>...</div>
+          </div>
+        </div>
+        <div class="arrow-mid">→</div>
+        <div class="compare-col">
+          <div class="compare-head after">🎨 UI Form Designer 방식</div>
+          <div class="compare-body">
+            <div class="added">// .form 파일이 레이아웃 담당</div>
+            <div class="added">// 필드 선언만 클래스에 작성</div>
+            <div class="added">private JPanel panel1;</div>
+            <div class="added">private JTextArea textArea1;</div>
+            <div class="added">private JTextField textField1;</div>
+            <div class="added">private JButton 전송Button;</div>
+            <div class="added">// → 드래그로 배치, 속성은 GUI에서</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box blue" style="margin-top:1.2rem">
+        <span class="icon">💡</span>
+        <span>
+          <code>.form</code> 파일과 <code>.java</code> 파일은 <strong>항상 쌍으로 존재</strong>합니다.
+          <code>Main.form</code>이 레이아웃 정보를 담고,
+          <code>Main.java</code>가 이벤트 로직을 담습니다.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 UI Form 생성 방법 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">02</span>
+      <span class="sec-title">UI Form 생성 방법 (IntelliJ)</span>
+    </div>
+    <div class="card-body">
+      <div class="intellij-steps">
+        <div class="ij-step">
+          <div class="ij-step-head s1">① 새 GUI Form 파일 생성</div>
+          <div class="ij-step-body">
+            패키지 우클릭 →
+            <span class="menu-path">
+              <span class="menu-item">New</span>
+              <span class="menu-arrow">›</span>
+              <span class="menu-item">Swing UI Designer</span>
+              <span class="menu-arrow">›</span>
+              <span class="menu-item">GUI Form</span>
+            </span>
+            선택<br><br>
+            <strong>Form name</strong>에 <code>Main</code> 입력,<br>
+            <strong>Base layout manager</strong>: <code>BorderLayout</code> 선택
+          </div>
+        </div>
+        <div class="ij-step">
+          <div class="ij-step-head s2">② 컴포넌트 배치 (Design 탭)</div>
+          <div class="ij-step-body">
+            좌측 <strong>Palette</strong>에서 컴포넌트를 드래그<br><br>
+            • <code>JTextArea</code> → <strong>Center</strong> 영역에 배치<br>
+            • <code>JTextField</code> + <code>JButton</code> → <strong>South</strong> 패널에 배치<br><br>
+            각 컴포넌트의 <strong>field name</strong>은 우측 Properties에서 설정
+          </div>
+        </div>
+        <div class="ij-step">
+          <div class="ij-step-head s3">③ Java 클래스 연결 확인</div>
+          <div class="ij-step-body">
+            <code>Main.java</code>에 자동 생성된 필드 확인:<br><br>
+            <code>private JPanel panel1;</code><br>
+            <code>private JTextArea textArea1;</code><br>
+            <code>private JTextField textField1;</code><br>
+            <code>private JButton 전송Button;</code><br><br>
+            생성자에서 <code>add(panel1)</code>으로 패널 추가
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box orange" style="margin-top:1rem">
+        <span class="icon">⚠️</span>
+        <span>
+          <strong>주의:</strong> UI Form으로 생성된 필드는 직접 <code>new</code>로 초기화하지 않습니다.
+          <code>.form</code> XML이 런타임에 컴포넌트를 생성해 필드에 주입합니다.
+          수동으로 <code>textArea1 = new JTextArea()</code>를 작성하면 충돌이 발생할 수 있습니다.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 .form XML 구조 분석 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">03</span>
+      <span class="sec-title">Main.form XML 구조 분석</span>
+    </div>
+    <div class="card-body">
+      <p class="desc">
+        <code>.form</code> 파일은 IntelliJ가 자동 관리하는 <strong>레이아웃 설계도</strong>입니다.
+        직접 수정하지 않고 Design 탭에서 편집하는 것을 권장합니다.
+      </p>
+
+      <div class="layout-diagram" style="margin-top:1rem">
+        <div class="ld-head">🗂 Main.form — 컴포넌트 계층 구조</div>
+        <div class="ld-body">
+<span class="xml-tag">&lt;form</span> <span class="xml-attr">bind-to-class</span>=<span class="xml-val">"...Main"</span><span class="xml-tag">&gt;</span>
+<br>
+<span class="ld-indent"></span><span class="xml-tag">&lt;grid</span> <span class="xml-attr">binding</span>=<span class="xml-val">"panel1"</span> <span class="xml-attr">layout-manager</span>=<span class="xml-val">"BorderLayout"</span><span class="xml-tag">&gt;</span>  <span class="xml-cm">← 루트 패널 (BorderLayout)</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;grid</span> <span class="xml-attr">layout-manager</span>=<span class="xml-val">"FlowLayout"</span><span class="xml-tag">&gt;</span>  <span class="xml-cm">← South 패널</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;constraints</span> <span class="xml-attr">border-constraint</span>=<span class="xml-val">"South"</span><span class="xml-tag">/&gt;</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;component</span> <span class="xml-attr">class</span>=<span class="xml-val">"JTextField"</span> <span class="xml-attr">binding</span>=<span class="xml-val">"textField1"</span> <span class="xml-attr">columns</span>=<span class="xml-val">"25"</span><span class="xml-tag">/&gt;</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;component</span> <span class="xml-attr">class</span>=<span class="xml-val">"JButton"</span>    <span class="xml-attr">binding</span>=<span class="xml-val">"전송Button"</span> <span class="xml-attr">text</span>=<span class="xml-val">"전송"</span><span class="xml-tag">/&gt;</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;/grid&gt;</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;scrollpane&gt;</span>  <span class="xml-cm">← Center 영역 (JScrollPane)</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;constraints</span> <span class="xml-attr">border-constraint</span>=<span class="xml-val">"Center"</span><span class="xml-tag">/&gt;</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;component</span> <span class="xml-attr">class</span>=<span class="xml-val">"JTextArea"</span> <span class="xml-attr">binding</span>=<span class="xml-val">"textArea1"</span> <span class="xml-attr">lineWrap</span>=<span class="xml-val">"true"</span><span class="xml-tag">/&gt;</span>
+<br>
+<span class="ld-indent"></span><span class="ld-indent"></span><span class="xml-tag">&lt;/scrollpane&gt;</span>
+<br>
+<span class="ld-indent"></span><span class="xml-tag">&lt;/grid&gt;</span>
+<br>
+<span class="xml-tag">&lt;/form&gt;</span>
+        </div>
+      </div>
+
+      <table class="ex-table">
+        <thead><tr><th style="width:28%">XML 속성</th><th style="width:18%">역할</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>bind-to-class</code></td>
+            <td><span class="badge badge-blue">연결</span></td>
+            <td>이 .form이 어떤 Java 클래스와 연결되는지 지정. <code>Main.java</code>의 필드와 바인딩됨</td>
+          </tr>
+          <tr>
+            <td><code>binding="panel1"</code></td>
+            <td><span class="badge badge-blue">연결</span></td>
+            <td>Java 클래스의 <code>private JPanel panel1</code> 필드에 이 컴포넌트를 주입</td>
+          </tr>
+          <tr>
+            <td><code>layout-manager="BorderLayout"</code></td>
+            <td><span class="badge badge-purple">레이아웃</span></td>
+            <td>루트 패널의 레이아웃을 BorderLayout으로 설정. Center/South 영역 분할</td>
+          </tr>
+          <tr>
+            <td><code>border-constraint="South"</code></td>
+            <td><span class="badge badge-purple">레이아웃</span></td>
+            <td>이 컴포넌트를 BorderLayout의 SOUTH 위치에 배치하도록 지정</td>
+          </tr>
+          <tr>
+            <td><code>border-constraint="Center"</code></td>
+            <td><span class="badge badge-purple">레이아웃</span></td>
+            <td>JScrollPane(JTextArea)를 가운데(남은 공간 전체)에 배치</td>
+          </tr>
+          <tr>
+            <td><code>layout-manager="FlowLayout"</code></td>
+            <td><span class="badge badge-purple">레이아웃</span></td>
+            <td>South 패널 내부는 FlowLayout — JTextField + JButton을 가로로 나열</td>
+          </tr>
+          <tr>
+            <td><code>columns="25"</code></td>
+            <td><span class="badge badge-green">속성</span></td>
+            <td>JTextField의 표시 너비를 25자 기준으로 설정</td>
+          </tr>
+          <tr>
+            <td><code>lineWrap="true"</code></td>
+            <td><span class="badge badge-green">속성</span></td>
+            <td>JTextArea에서 긴 줄이 자동으로 줄 바꿈되도록 설정</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 04 GUI 레이아웃 구조 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">04</span>
+      <span class="sec-title">GUI 레이아웃 구조 (BorderLayout)</span>
+    </div>
+    <div class="card-body">
+      <p class="desc">
+        루트 패널(<code>panel1</code>)은 <strong>BorderLayout</strong>으로 구성됩니다.
+        <strong>CENTER</strong>에는 JScrollPane으로 감싼 JTextArea,
+        <strong>SOUTH</strong>에는 JTextField + JButton이 배치됩니다.
+      </p>
+
+      <!-- BorderLayout 시각화 -->
+      <div style="margin: 1.2rem auto; max-width: 420px; border: 1.5px solid var(--border2); border-radius: 10px; overflow: hidden; font-size: 12px; font-family: var(--mono);">
+        <div style="background: var(--bg3); border-bottom: 1px solid var(--border); padding: .45rem .8rem; font-size: 11px; font-weight: 700; color: var(--text2); display:flex; gap:6px; align-items:center;">
+          <span class="win-dot win-dot-r"></span><span class="win-dot win-dot-y"></span><span class="win-dot win-dot-g"></span>
+          &nbsp;Main — BorderLayout 구조
+        </div>
+        <div style="background:#fff; padding: .6rem;">
+          <div style="background: var(--accent-lt); border: 1.5px dashed rgba(37,99,235,.4); border-radius: 6px; height: 110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; margin-bottom:6px;">
+            <span style="font-weight:700; color:var(--accent); font-size:11px;">CENTER</span>
+            <span style="color:var(--text3); font-size:11px;">JScrollPane</span>
+            <span style="background: var(--accent-lt); border: 1px solid rgba(37,99,235,.25); border-radius:5px; color:var(--accent2); font-size:11px; padding:3px 10px;">JTextArea (textArea1)</span>
+            <span style="color:var(--text3); font-size:10px;">lineWrap=true · 읽기 가능</span>
+          </div>
+          <div style="background: var(--green-lt); border: 1.5px dashed rgba(5,150,105,.4); border-radius: 6px; padding: .5rem .6rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span style="font-weight:700; color:var(--green); font-size:11px;">SOUTH</span>
+            <span style="background:#fff; border:1px solid var(--border2); border-radius:4px; padding:3px 16px; font-size:11px; color:var(--text2);">JTextField (textField1) · columns=25</span>
+            <span style="background:var(--accent); color:#fff; border-radius:4px; padding:3px 10px; font-size:11px; font-weight:700;">전송</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 실제 창 미리보기 -->
+      <div class="window-mock">
+        <div class="win-title-bar">
+          <span class="win-dot win-dot-r"></span>
+          <span class="win-dot win-dot-y"></span>
+          <span class="win-dot win-dot-g"></span>
+          &nbsp;프레임 연습 (400 × 300)
+        </div>
+        <div class="win-body">
+          <div class="mock-textarea">안녕하세요!
+반갑습니다.
+오늘 날씨가 좋네요.</div>
+          <div class="mock-input-row">
+            <div class="mock-input">텍스트를 입력하세요...</div>
+            <div class="mock-btn">전송</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box blue" style="margin-top:1rem">
+        <span class="icon">💡</span>
+        <span>
+          <strong>BorderLayout의 핵심:</strong> CENTER 영역은 창 크기 변경 시 자동으로 늘어나고,
+          SOUTH 영역은 버튼/입력창 높이를 유지합니다.
+          채팅 UI의 표준 패턴입니다.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 소스 코드 분석 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">05</span>
+      <span class="sec-title">소스 코드 — Main.java</span>
+    </div>
+
+    <div class="code-bar">
+      <div class="code-file-info">
+        <div class="dot-row">
+          <span class="win-dot win-dot-r"></span>
+          <span class="win-dot win-dot-y"></span>
+          <span class="win-dot win-dot-g"></span>
+        </div>
+        <span class="filename">Main<span class="ext">.java</span></span>
+        <span style="font-size:10px;color:var(--accent);background:var(--accent-lt);border:1px solid rgba(37,99,235,.2);border-radius:3px;padding:1px 6px;font-family:var(--mono)">UI Form 연동</span>
+      </div>
+      <button class="copy-btn" onclick="copyCode('main-code', this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        복사
+      </button>
+    </div>
+
+    <pre id="main-code"><span class="kw2">package</span> inhatc.cse.java.chap17.ex0_frame;
+
+<span class="kw2">import</span> javax.swing.*;
+<span class="kw2">import</span> java.awt.event.ActionEvent;
+<span class="kw2">import</span> java.awt.event.ActionListener;
+
+<span class="kw">public class</span> <span class="cls">Main</span> <span class="kw">extends</span> <span class="cls">JFrame</span> {
+
+    <span class="cm">// ── UI Form과 바인딩되는 컴포넌트 필드 ──────────────────────
+    // .form 파일이 런타임에 이 필드들에 컴포넌트를 자동 주입
+    // ⚠ new로 직접 초기화하지 않는다!</span>
+    <span class="hi">    <span class="kw">private</span> <span class="type">JTextArea</span>  textArea1;</span>
+    <span class="hi">    <span class="kw">private</span> <span class="type">JPanel</span>     panel1;</span>
+    <span class="hi">    <span class="kw">private</span> <span class="type">JTextField</span> textField1;</span>
+    <span class="hi">    <span class="kw">private</span> <span class="type">JButton</span>    전송Button;</span>
+
+    <span class="kw">public</span> <span class="fn">Main</span>() {
+        <span class="cm">// ── JFrame 기본 설정 ──────────────────────────────────────</span>
+        <span class="fn">setTitle</span>(<span class="str">"프레임 연습"</span>);
+        <span class="fn">setDefaultCloseOperation</span>(JFrame.EXIT_ON_CLOSE);  <span class="cm">// X 버튼 클릭 시 종료</span>
+        <span class="fn">setSize</span>(<span class="num">400</span>, <span class="num">300</span>);                              <span class="cm">// 창 크기 설정</span>
+        <span class="fn">setLocationRelativeTo</span>(<span class="kw">null</span>);                     <span class="cm">// 화면 중앙 배치</span>
+        <span class="fn">setVisible</span>(<span class="kw">true</span>);                                <span class="cm">// 창 표시</span>
+
+        <span class="cm">// ── UI Form 패널을 JFrame에 추가 ─────────────────────────</span>
+        <span class="hi2">        <span class="fn">add</span>(panel1);</span>   <span class="cm">// .form에서 생성된 루트 패널을 JFrame에 등록</span>
+
+        <span class="cm">// ── 방법 1: 익명 내부 클래스로 이벤트 처리 (기본 방식) ───</span>
+        전송Button.<span class="fn">addActionListener</span>(<span class="kw">new</span> <span class="cls">ActionListener</span>() {
+            <span class="ann">@Override</span>
+            <span class="kw">public void</span> <span class="fn">actionPerformed</span>(<span class="type">ActionEvent</span> e) {
+                <span class="type">String</span> text = textField1.<span class="fn">getText</span>();     <span class="cm">// 입력창 텍스트 가져오기</span>
+                textArea1.<span class="fn">append</span>(text + <span class="str">"\n"</span>);        <span class="cm">// 텍스트창에 추가</span>
+                textField1.<span class="fn">setText</span>(<span class="str">""</span>);               <span class="cm">// 입력창 초기화</span>
+            }
+        });
+
+        <span class="cm">// ── 방법 2: 람다식으로 동일 이벤트 처리 (Java 8+) ────────
+//        전송Button.addActionListener(e -> {
+//            String text = textField1.getText();
+//            textArea1.append(text + "\n");
+//            textField1.setText("");
+//        });</span>
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) {
+        <span class="kw">new</span> <span class="cls">Main</span>();    <span class="cm">// 생성자 호출 → JFrame 창 표시</span>
+    }
+}</pre>
+
+    <div style="padding:1.2rem 1.6rem; border-top:1px solid var(--border)">
+      <table class="ex-table">
+        <thead><tr><th style="width:38%">코드</th><th style="width:12%">분류</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>extends JFrame</code></td>
+            <td><span class="badge badge-blue">구조</span></td>
+            <td>JFrame을 상속해 창 기능을 직접 보유. <code>setTitle()</code>, <code>setSize()</code> 등을 <code>this.</code> 없이 호출 가능</td>
+          </tr>
+          <tr>
+            <td><code>private JTextArea textArea1</code> 등</td>
+            <td><span class="badge badge-teal">Form</span></td>
+            <td><code>.form</code>의 <code>binding</code> 속성과 이름이 일치해야 함. UI Designer가 런타임에 자동 주입 — <code>new</code> 불필요</td>
+          </tr>
+          <tr>
+            <td><code>setLocationRelativeTo(null)</code></td>
+            <td><span class="badge badge-blue">구조</span></td>
+            <td>null을 전달하면 화면 정중앙에 창을 배치. 이전 예제의 <code>setLocation(x, y)</code>와 달리 자동 계산</td>
+          </tr>
+          <tr>
+            <td><code>add(panel1)</code></td>
+            <td><span class="badge badge-teal">Form</span></td>
+            <td><code>.form</code>이 주입한 루트 패널을 JFrame의 콘텐츠 영역에 추가. 이 한 줄로 전체 UI가 표시됨</td>
+          </tr>
+          <tr>
+            <td><code>textField1.getText()</code></td>
+            <td><span class="badge badge-green">이벤트</span></td>
+            <td>JTextField의 현재 입력 내용을 String으로 반환. 버튼 클릭 시 이 값을 읽어 처리</td>
+          </tr>
+          <tr>
+            <td><code>textArea1.append(text + "\n")</code></td>
+            <td><span class="badge badge-green">이벤트</span></td>
+            <td>JTextArea 끝에 텍스트를 추가. <code>"\n"</code>으로 줄 바꿈. <code>setText()</code>는 전체 교체, <code>append()</code>는 누적 추가</td>
+          </tr>
+          <tr>
+            <td><code>textField1.setText("")</code></td>
+            <td><span class="badge badge-green">이벤트</span></td>
+            <td>전송 후 입력창을 비워 다음 입력 준비. UX 필수 처리</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 06 이벤트 처리 2가지 방식 비교 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">06</span>
+      <span class="sec-title">ActionListener 이벤트 처리 — 2가지 방식 비교</span>
+    </div>
+    <div class="card-body">
+      <p class="desc">
+        버튼 클릭 이벤트를 처리하는 방법은 크게 두 가지입니다.
+        <strong>익명 내부 클래스</strong> 방식과 <strong>람다식</strong> 방식 모두 동일하게 동작하며,
+        현대 Java(8+)에서는 람다식이 더 간결합니다.
+      </p>
+
+      <div class="change-grid" style="margin-top:1rem">
+        <div class="change-card orange">
+          <div class="change-card-icon">📜</div>
+          <div class="change-card-title">익명 내부 클래스 방식</div>
+          <div class="change-card-desc">
+            <code>new ActionListener() { @Override actionPerformed(){...} }</code><br><br>
+            Java 7 이하에서 사용. 코드가 길지만 <strong>명시적</strong>으로 무슨 일이 일어나는지 잘 보임.
+            학습 초기에 인터페이스 구조를 이해하는 데 적합
+          </div>
+        </div>
+        <div class="change-card green">
+          <div class="change-card-icon">⚡</div>
+          <div class="change-card-title">람다식 방식 (Java 8+)</div>
+          <div class="change-card-desc">
+            <code>e -> { ... }</code><br><br>
+            함수형 인터페이스(메서드 1개)이므로 람다로 표현 가능.
+            <strong>코드가 짧고 가독성</strong>이 높음. 실무에서 권장
+          </div>
+        </div>
+      </div>
+
+      <!-- 코드 비교 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:1.2rem;">
+        <div>
+          <div style="font-size:11px; font-weight:700; color:var(--orange); margin-bottom:6px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em;">📜 익명 내부 클래스</div>
+          <pre style="border-radius:8px; font-size:11.5px; padding:1rem;">전송Button.<span class="fn">addActionListener</span>(
+  <span class="kw">new</span> <span class="cls">ActionListener</span>() {
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">actionPerformed</span>(
+        <span class="type">ActionEvent</span> e) {
+      <span class="type">String</span> text =
+        textField1.<span class="fn">getText</span>();
+      textArea1.<span class="fn">append</span>(
+        text + <span class="str">"\n"</span>);
+      textField1.<span class="fn">setText</span>(<span class="str">""</span>);
+    }
+  }
+);</pre>
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; color:var(--green); margin-bottom:6px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em;">⚡ 람다식 (Java 8+)</div>
+          <pre style="border-radius:8px; font-size:11.5px; padding:1rem;">전송Button.<span class="fn">addActionListener</span>(
+  e -> {
+    <span class="type">String</span> text =
+      textField1.<span class="fn">getText</span>();
+    textArea1.<span class="fn">append</span>(
+      text + <span class="str">"\n"</span>);
+    textField1.<span class="fn">setText</span>(<span class="str">""</span>);
+  }
+);
+
+
+
+
+</pre>
+        </div>
+      </div>
+
+      <div class="info-box green" style="margin-top:1rem">
+        <span class="icon">✅</span>
+        <span>
+          두 방식은 <strong>완전히 동일하게 동작</strong>합니다.
+          <code>ActionListener</code>는 <code>actionPerformed()</code> 메서드 하나만 가진
+          <strong>함수형 인터페이스</strong>이기 때문에 람다식으로 대체할 수 있습니다.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 실행 흐름 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">07</span>
+      <span class="sec-title">실행 흐름 — 버튼 클릭 시 동작 순서</span>
+    </div>
+    <div class="card-body">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--accent)">1</div>
+          <div>
+            <div class="flow-title">main() 실행 → new Main()</div>
+            <div class="flow-desc">
+              <code>public static void main()</code>에서 <code>new Main()</code> 호출.
+              생성자에서 <code>setTitle()</code>, <code>setSize()</code>, <code>setVisible(true)</code>를 실행해 창이 화면에 표시됨.
+              <code>.form</code>이 자동으로 컴포넌트를 생성하고 필드에 주입
+            </div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--green)">2</div>
+          <div>
+            <div class="flow-title">add(panel1) — 루트 패널 등록</div>
+            <div class="flow-desc">
+              <code>.form</code>이 주입한 <code>panel1</code>(BorderLayout)을 JFrame에 추가.
+              CENTER에 JScrollPane(JTextArea), SOUTH에 JTextField + JButton이 배치된 전체 UI가 한 번에 표시됨
+            </div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--purple)">3</div>
+          <div>
+            <div class="flow-title">ActionListener 등록 — 전송 버튼</div>
+            <div class="flow-desc">
+              <code>전송Button.addActionListener(...)</code>로 이벤트 리스너 등록.
+              이 시점에는 실행되지 않음 — 버튼이 클릭될 때까지 대기 상태
+            </div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--orange)">4</div>
+          <div>
+            <div class="flow-title">사용자가 텍스트 입력 후 [전송] 클릭</div>
+            <div class="flow-desc">
+              JVM이 <code>actionPerformed(ActionEvent e)</code>를 자동 호출.
+              <code>textField1.getText()</code>로 입력 내용 읽기 →
+              <code>textArea1.append(text + "\n")</code>로 텍스트창에 추가 →
+              <code>textField1.setText("")</code>로 입력창 초기화
+            </div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--teal)">5</div>
+          <div>
+            <div class="flow-title">반복 대기 — 이벤트 루프</div>
+            <div class="flow-desc">
+              Swing은 내부적으로 <strong>EDT(Event Dispatch Thread)</strong>가 이벤트 루프를 유지.
+              창이 닫히지 않는 한 버튼 클릭을 계속 감지하고 <code>actionPerformed()</code>를 반복 호출
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 핵심 포인트 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">08</span>
+      <span class="sec-title">핵심 포인트 정리</span>
+    </div>
+    <div class="card-body">
+      <div class="point-grid">
+        <div class="point-card">
+          <div class="point-icon">🗂</div>
+          <div class="point-title">.form 파일 역할</div>
+          <div class="point-body">
+            레이아웃 설계도. 직접 편집하지 않고 <strong>Design 탭</strong>에서 편집.
+            <code>.java</code>와 항상 쌍으로 존재
+          </div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🔗</div>
+          <div class="point-title">바인딩(Binding)</div>
+          <div class="point-body">
+            <code>.form</code>의 <code>binding="textArea1"</code>과 Java 필드명이 <strong>정확히 일치</strong>해야 주입이 동작함
+          </div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🚫</div>
+          <div class="point-title">new 초기화 금지</div>
+          <div class="point-body">
+            <code>.form</code>이 주입하는 필드를 <code>new JTextArea()</code>로 직접 초기화하면 충돌 발생.
+            선언만 하고 초기화는 Form에 맡길 것
+          </div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">📤</div>
+          <div class="point-title">append vs setText</div>
+          <div class="point-body">
+            <code>append()</code>는 기존 내용 유지하며 추가,
+            <code>setText()</code>는 전체 교체.
+            채팅창은 <code>append()</code>, 입력창 초기화는 <code>setText("")</code>
+          </div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">⚡</div>
+          <div class="point-title">람다 vs 익명 클래스</div>
+          <div class="point-body">
+            <code>ActionListener</code>는 함수형 인터페이스이므로 람다 사용 가능.
+            두 방식 <strong>동작 동일</strong> — 람다가 더 간결
+          </div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🏗</div>
+          <div class="point-title">add(panel1) 순서</div>
+          <div class="point-body">
+            <code>setVisible(true)</code> 전에 <code>add(panel1)</code> 호출 권장.
+            또는 호출 후 <code>revalidate()</code> / <code>repaint()</code> 필요할 수 있음
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box orange" style="margin-top:1.2rem">
+        <span class="icon">⚠️</span>
+        <span>
+          <strong>이 예제의 한계:</strong>
+          <code>setVisible(true)</code>를 <code>add(panel1)</code>보다 먼저 호출하고 있습니다.
+          일반적으로 모든 컴포넌트 추가 후 <code>setVisible(true)</code>를 호출하는 것이 권장됩니다.
+          동작에는 문제없지만, 코드 순서를 바꿔도 결과가 같은지 직접 실험해보세요.
+        </span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function copyCode(id, btn) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = '✓ 복사됨';
+    btn.classList.add('ok');
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 복사';
+      btn.classList.remove('ok');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>

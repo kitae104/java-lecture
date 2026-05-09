@@ -272,8 +272,32 @@
 
 <!-- ──────────── 본문 ──────────── -->
 <div class="content">
+<!-- AUTO-CARDS:START -->
 
-  <!-- Network -->
+  <!-- Frame · GUI 프로그래밍 -->
+  <section class="category">
+    <div class="category-head">
+      <span class="category-icon">🪟</span>
+      <span class="category-title">Frame · GUI 프로그래밍</span>
+      <span class="category-meta">frame/</span>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="./frame/swing-ui-form-lecture.html">
+        <div class="card-num">CHAPTER 17-0</div>
+        <div class="card-title">IntelliJ Swing UI Form</div>
+        <div class="card-desc">IntelliJ의 GUI Form Designer(.form)를 사용해 JFrame 레이아웃을 시각적으로 설계하고, ActionListener로 버튼 이벤트를 처리하는 기초 예제</div>
+        <div class="card-foot">
+          <div class="card-tags">
+            <span class="card-tag">JFrame</span>
+            <span class="card-tag">JTextArea</span>
+          </div>
+          <span class="card-cta">강의 보기 →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Network · 네트워크 프로그래밍 -->
   <section class="category">
     <div class="category-head">
       <span class="category-icon">🌐</span>
@@ -283,12 +307,12 @@
     <div class="card-grid">
       <a class="card" href="./network/socket_lecture.html">
         <div class="card-num">CHAPTER 17</div>
-        <div class="card-title">소켓 통신 (Socket)</div>
-        <div class="card-desc">java.net 패키지를 이용한 TCP 기반 서버-클라이언트 양방향 채팅 프로그램. ServerSocket / Socket / BufferedReader 흐름.</div>
+        <div class="card-title">소켓 통신</div>
+        <div class="card-desc">java.net 패키지를 이용한 TCP 소켓 기반 서버-클라이언트 양방향 채팅 프로그램</div>
         <div class="card-foot">
           <div class="card-tags">
-            <span class="card-tag">Socket</span>
-            <span class="card-tag">TCP</span>
+            <span class="card-tag">java.net.Socket</span>
+            <span class="card-tag">java.net.ServerSocket</span>
           </div>
           <span class="card-cta">강의 보기 →</span>
         </div>
@@ -296,12 +320,12 @@
 
       <a class="card" href="./network/gui_chat.html">
         <div class="card-num">CHAPTER 17-2</div>
-        <div class="card-title">GUI 1:1 소켓 채팅</div>
-        <div class="card-desc">콘솔 채팅을 Swing JFrame 으로 리팩터링. 1:1 양방향 채팅 GUI 구성과 이벤트 처리.</div>
+        <div class="card-title">소켓 채팅 GUI 구현</div>
+        <div class="card-desc">기존 콘솔 채팅(Server.java / Client.java)을 Swing GUI로 리팩터링 — 1:1 양방향 채팅</div>
         <div class="card-foot">
           <div class="card-tags">
-            <span class="card-tag">Swing</span>
             <span class="card-tag">JFrame</span>
+            <span class="card-tag">JTextArea</span>
           </div>
           <span class="card-cta">강의 보기 →</span>
         </div>
@@ -310,11 +334,11 @@
       <a class="card" href="./network/multichat.html">
         <div class="card-num">CHAPTER 17-3</div>
         <div class="card-title">GUI 멀티스레드 채팅</div>
-        <div class="card-desc">다수 클라이언트 동시 접속. 스레드별 클라이언트 담당 + ArrayList 브로드캐스트로 전원에게 메시지 전달.</div>
+        <div class="card-desc">다수의 클라이언트가 동시 접속 — 스레드마다 클라이언트를 담당하고, 수신 메시지를 전원에게 전달</div>
         <div class="card-foot">
           <div class="card-tags">
-            <span class="card-tag">Thread</span>
-            <span class="card-tag">Broadcast</span>
+            <span class="card-tag">Thread extends</span>
+            <span class="card-tag">ArrayList&lt;ServerThread&gt;</span>
           </div>
           <span class="card-cta">강의 보기 →</span>
         </div>
@@ -334,7 +358,43 @@
     </div>
   </section>
 
-  <!-- Threads -->
+  <!-- Database · 데이터베이스 연동 -->
+  <section class="category">
+    <div class="category-head">
+      <span class="category-icon">🗄️</span>
+      <span class="category-title">Database · 데이터베이스 연동</span>
+      <span class="category-meta">database/</span>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="./database/jdbc-mysql-lecture.html">
+        <div class="card-num">CHAPTER 17-4</div>
+        <div class="card-title">Java JDBC — MySQL 연동</div>
+        <div class="card-desc">MySQL 드라이버를 로드하고 Connection을 맺은 뒤, Statement로 INSERT · UPDATE · DELETE · SELECT 를 실행하는 JDBC 기초 예제</div>
+        <div class="card-foot">
+          <div class="card-tags">
+            <span class="card-tag">JDBC</span>
+            <span class="card-tag">MySQL 8.x</span>
+          </div>
+          <span class="card-cta">강의 보기 →</span>
+        </div>
+      </a>
+
+      <a class="card" href="./database/jdbc-login-lecture.html">
+        <div class="card-num">CHAPTER 17-5</div>
+        <div class="card-title">JDBC + Swing 로그인 구현</div>
+        <div class="card-desc">DB 연결을 전담하는 DB.java와 Swing GUI 로그인 화면인 Login.java로 역할을 분리 — GridLayout 폼 설계부터 ResultSet 기반 인증 로직까지</div>
+        <div class="card-foot">
+          <div class="card-tags">
+            <span class="card-tag">DB 클래스 분리</span>
+            <span class="card-tag">JPasswordField</span>
+          </div>
+          <span class="card-cta">강의 보기 →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Threads · 멀티스레드 -->
   <section class="category">
     <div class="category-head">
       <span class="category-icon">🧵</span>
@@ -356,7 +416,7 @@
     </div>
   </section>
 
-  <!-- Collections -->
+  <!-- Collections · 컬렉션 프레임워크 -->
   <section class="category">
     <div class="category-head">
       <span class="category-icon">📦</span>
@@ -378,6 +438,7 @@
     </div>
   </section>
 
+  <!-- AUTO-CARDS:END -->
 </div>
 
 <!-- ──────────── 푸터 ──────────── -->
