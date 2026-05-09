@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 17 · 소켓 통신 | Java 강의자료</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f8fafc;
+    --bg3: #f1f5f9;
+    --border: #e2e8f0;
+    --border2: #cbd5e1;
+    --text: #0f172a;
+    --text2: #475569;
+    --text3: #94a3b8;
+    --accent: #2563eb;
+    --accent2: #1d4ed8;
+    --green: #15803d;
+    --orange: #c2410c;
+    --pink: #be185d;
+    --yellow: #a16207;
+    --purple: #6d28d9;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 2px 6px rgba(15,23,42,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── 상단 헤더 ── */
+  .page-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 3rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .chapter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(37,99,235,.08);
+    border: 1px solid rgba(37,99,235,.2);
+    border-radius: 4px;
+    padding: 3px 10px;
+    margin-bottom: 1rem;
+  }
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .4rem;
+  }
+  .page-title span { color: var(--accent); }
+  .page-sub {
+    font-size: 14px;
+    color: var(--text2);
+  }
+  .meta-chips {
+    display: flex;
+    gap: 8px;
+    margin-top: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .chip {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    background: var(--bg3);
+    font-family: var(--mono);
+  }
+
+  /* ── 본문 레이아웃 ── */
+  .content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  /* ── 섹션 카드 ── */
+  .section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: .9rem 1.4rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent);
+    background: rgba(37,99,235,.1);
+    border: 1px solid rgba(37,99,235,.18);
+    border-radius: 4px;
+    padding: 1px 7px;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .section-body {
+    padding: 1.4rem 1.6rem;
+  }
+
+  /* ── 설명 텍스트 ── */
+  .desc {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.85;
+  }
+  .desc + .desc { margin-top: .7rem; }
+  .desc code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--orange);
+    background: rgba(194,65,12,.06);
+    border: 1px solid rgba(194,65,12,.18);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  strong { color: var(--text); font-weight: 700; }
+
+  /* ── 흐름도 이미지 ── */
+  .diagram-wrap {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  .diagram-wrap img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+  .diagram-caption {
+    margin-top: .8rem;
+    font-size: 12px;
+    color: var(--text3);
+    font-family: var(--mono);
+    text-align: center;
+  }
+
+  /* ── 소켓 흐름 시각화 ── */
+  .flow-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: start;
+  }
+  .flow-col-head {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    padding: .5rem;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 8px;
+  }
+  .flow-col-head.client { background: rgba(21,128,61,.08); color: var(--green); border: 1px solid rgba(21,128,61,.2); }
+  .flow-col-head.server { background: rgba(37,99,235,.08); color: var(--accent); border: 1px solid rgba(37,99,235,.2); }
+  .flow-steps { display: flex; flex-direction: column; gap: 6px; }
+  .flow-step {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: .6rem .9rem;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    position: relative;
+  }
+  .flow-step.active { border-color: var(--green); }
+  .flow-step.passive { border-color: var(--accent); }
+  .flow-step .step-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text3);
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .flow-step.active .step-label { color: var(--green); }
+  .flow-step.passive .step-label { color: var(--accent); }
+  .flow-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 40px;
+    align-items: center;
+  }
+  .arrow-box {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--pink);
+  }
+
+  /* ── 코드 블록 ── */
+  .code-section { display: flex; flex-direction: column; gap: 1.5rem; }
+  .code-card {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .7rem 1.2rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-file {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .code-filename {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-left: 4px;
+  }
+  .code-filename .ext { color: var(--accent); }
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text2);
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .copy-btn:hover { background: var(--bg2); color: var(--text); border-color: var(--accent); }
+  .copy-btn.ok { color: var(--green); border-color: var(--green); }
+  pre {
+    margin: 0;
+    padding: 1.3rem 1.5rem;
+    background: var(--bg);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.8;
+    tab-size: 4;
+  }
+  .ln { color: var(--text3); user-select: none; display: inline-block; width: 2em; margin-right: 1em; text-align: right; font-size: 11px; }
+  /* 신택스 하이라이팅 (라이트 테마용 진한 톤) */
+  .kw   { color: #1e40af; font-weight: 600; }   /* 키워드 (진파랑) */
+  .kw2  { color: var(--purple); font-weight: 600; } /* import/package */
+  .type { color: #0f766e; }   /* 타입 (틸) */
+  .str  { color: #15803d; }   /* 문자열 (진녹색) */
+  .cm   { color: #64748b; font-style: italic; } /* 주석 */
+  .num  { color: var(--orange); } /* 숫자 */
+  .fn   { color: var(--pink); }   /* 메서드 */
+  .cls  { color: #0f766e; font-weight: 600; }   /* 클래스명 */
+  .ann  { color: var(--yellow); } /* 어노테이션 */
+
+  /* ── 코드 설명 테이블 ── */
+  .explain-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 1rem;
+  }
+  .explain-table th {
+    text-align: left;
+    padding: .5rem .8rem;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    color: var(--text3);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  .explain-table td {
+    padding: .55rem .8rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .explain-table tr:last-child td { border-bottom: none; }
+  .explain-table tr:hover td { background: var(--bg3); }
+  .explain-table code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--orange);
+    background: rgba(194,65,12,.06);
+    border: 1px solid rgba(194,65,12,.15);
+    border-radius: 3px;
+    padding: 1px 5px;
+    white-space: nowrap;
+  }
+  .tag-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+  .tag-c { background: rgba(21,128,61,.08); color: var(--green); border: 1px solid rgba(21,128,61,.22); }
+  .tag-s { background: rgba(37,99,235,.08); color: var(--accent); border: 1px solid rgba(37,99,235,.22); }
+  .tag-b { background: rgba(109,40,217,.08); color: var(--purple); border: 1px solid rgba(109,40,217,.22); }
+
+  /* ── 포인트 카드 ── */
+  .point-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: .2rem;
+  }
+  .point-card {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: .9rem 1rem;
+  }
+  .point-icon {
+    font-size: 18px;
+    margin-bottom: .4rem;
+  }
+  .point-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .3rem;
+  }
+  .point-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .point-desc code {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--orange);
+    background: rgba(194,65,12,.06);
+    border-radius: 3px;
+    padding: 0 4px;
+  }
+
+  /* ── 실행 순서 ── */
+  .run-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .run-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: .8rem 1rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .run-num {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--bg);
+    background: var(--accent);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .run-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .run-desc { font-size: 12px; color: var(--text2); margin-top: 2px; line-height: 1.6; }
+  .run-desc code {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--orange);
+    background: rgba(194,65,12,.06);
+    border-radius: 3px;
+    padding: 0 4px;
+  }
+
+  /* ── 탭 ── */
+  .tab-wrap { display: flex; gap: 4px; margin-bottom: 0; padding: .8rem 1.2rem .6rem; background: var(--bg3); border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    font-size: 12px;
+    font-family: var(--mono);
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 5px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .tab-btn.active.green { border-color: var(--green); color: var(--green); background: rgba(21,128,61,.08); }
+  .tab-btn.active.blue  { border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,.08); }
+  .tab-btn:not(.active):hover { background: var(--bg2); color: var(--text); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ──────────── 헤더 ──────────── -->
+<div class="page-header">
+  <div class="chapter-tag">Chapter 17 · 네트워크 프로그래밍</div>
+  <h1 class="page-title">소켓 통신 <span>Server / Client</span></h1>
+  <p class="page-sub">java.net 패키지를 이용한 TCP 소켓 기반 서버-클라이언트 양방향 채팅 프로그램</p>
+  <div class="meta-chips">
+    <span class="chip">java.net.Socket</span>
+    <span class="chip">java.net.ServerSocket</span>
+    <span class="chip">BufferedReader</span>
+    <span class="chip">BufferedWriter</span>
+    <span class="chip">TCP / Port 9999</span>
+  </div>
+</div>
+
+<!-- ──────────── 본문 ──────────── -->
+<div class="content">
+
+  <!-- ① 개요 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <span class="section-title">소켓 통신 개요</span>
+    </div>
+    <div class="section-body">
+      <p class="desc">
+        <strong>소켓(Socket)</strong>은 네트워크에서 프로세스 간 통신을 위한 양쪽 끝단(End-point)입니다.
+        Java는 <code>java.net</code> 패키지에 <code>Socket</code>과 <code>ServerSocket</code> 클래스를 제공하여
+        TCP 기반의 신뢰성 있는 연결 통신을 구현할 수 있습니다.
+      </p>
+      <p class="desc" style="margin-top:.7rem">
+        <strong>서버</strong>는 특정 포트에서 클라이언트의 접속을 대기(<code>accept()</code>)하고,
+        <strong>클라이언트</strong>는 서버 IP와 포트 번호로 연결을 요청(<code>new Socket(ip, port)</code>)합니다.
+        연결이 성립되면 양쪽 모두 <code>InputStream</code> / <code>OutputStream</code>으로 데이터를 주고받습니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- ② 통신 구조 다이어그램 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <span class="section-title">통신 구조 다이어그램</span>
+    </div>
+    <div class="section-body">
+      <div class="diagram-wrap">
+        <img src="/images/socket.png" alt="소켓 서버-클라이언트 통신 구조 다이어그램">
+      </div>
+      <p class="diagram-caption">▲ 소켓을 이용한 서버-클라이언트 통신 프로그램 구조</p>
+
+      <div style="margin-top:1.5rem">
+        <div class="flow-grid">
+          <!-- 클라이언트 -->
+          <div>
+            <div class="flow-col-head client">🖥 클라이언트 (Client)</div>
+            <div class="flow-steps">
+              <div class="flow-step active">
+                <div class="step-label">① 연결 요청</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--green)">new Socket("localhost", 9999)</code>
+              </div>
+              <div class="flow-step">
+                <div class="step-label">② 스트림 획득</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--text2)">getOutputStream() / getInputStream()</code>
+              </div>
+              <div class="flow-step">
+                <div class="step-label">③ 메시지 전송</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--text2)">out.write(msg + "\n")</code>
+              </div>
+              <div class="flow-step">
+                <div class="step-label">④ 응답 수신</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--text2)">in.readLine()</code>
+              </div>
+              <div class="flow-step">
+                <div class="step-label">⑤ 연결 종료</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--text2)">socket.close()</code>
+              </div>
+            </div>
+          </div>
+          <!-- 화살표 -->
+          <div class="flow-arrows">
+            <div class="arrow-box" style="height:48px"></div>
+            <div class="arrow-box">→</div>
+            <div class="arrow-box">→</div>
+            <div class="arrow-box">←</div>
+            <div class="arrow-box"></div>
+          </div>
+          <!-- 서버 -->
+          <div>
+            <div class="flow-col-head server">🖧 서버 (Server)</div>
+            <div class="flow-steps">
+              <div class="flow-step passive">
+                <div class="step-label">① 포트 바인딩</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">new ServerSocket(9999)</code>
+              </div>
+              <div class="flow-step passive">
+                <div class="step-label">② 연결 수락</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">server.accept()</code>
+              </div>
+              <div class="flow-step">
+                <div class="step-label">③ 스트림 획득</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--text2)">getInputStream() / getOutputStream()</code>
+              </div>
+              <div class="flow-step">
+                <div class="step-label">④ 메시지 수신 후 응답</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--text2)">in.readLine() → out.write()</code>
+              </div>
+              <div class="flow-step">
+                <div class="step-label">⑤ 연결 종료</div>
+                <code style="font-family:var(--mono);font-size:12px;color:var(--text2)">socket.close() / server.close()</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 소스 코드 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <span class="section-title">소스 코드</span>
+    </div>
+
+    <!-- 탭 -->
+    <div class="tab-wrap">
+      <button class="tab-btn active green" onclick="switchTab('server')" id="tab-server">Server.java</button>
+      <button class="tab-btn" onclick="switchTab('client')" id="tab-client">Client.java</button>
+    </div>
+
+    <!-- Server 탭 -->
+    <div class="tab-panel active" id="panel-server">
+      <div class="code-card" style="border:none;border-radius:0">
+        <div class="code-header">
+          <div class="code-file">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="code-filename">Server<span class="ext">.java</span></span>
+          </div>
+          <button class="copy-btn" onclick="copyCode('server-code', this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            복사
+          </button>
+        </div>
+        <pre id="server-code"><span class="kw2">package</span> inhatc.cse.java.chap17.ex2_serverclient;
+
+<span class="kw2">import</span> java.io.*;
+<span class="kw2">import</span> java.net.ServerSocket;
+<span class="kw2">import</span> java.net.Socket;
+<span class="kw2">import</span> java.util.Scanner;
+
+<span class="kw">public class</span> <span class="cls">Server</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) {
+        <span class="type">ServerSocket</span> server = <span class="kw">null</span>;
+        <span class="type">Socket</span> socket = <span class="kw">null</span>;
+        <span class="type">BufferedReader</span> in = <span class="kw">null</span>;
+        <span class="type">BufferedWriter</span> out = <span class="kw">null</span>;
+        <span class="type">Scanner</span> sc = <span class="kw">new</span> <span class="cls">Scanner</span>(System.in);
+
+        <span class="kw">try</span> {
+            <span class="cm">// 서버 소켓 생성 - 포트 9999에서 대기</span>
+            server = <span class="kw">new</span> <span class="cls">ServerSocket</span>(<span class="num">9999</span>);
+            System.out.<span class="fn">println</span>(<span class="str">"연결 대기중....."</span>);
+
+            <span class="cm">// 클라이언트 연결 수락 (블로킹)</span>
+            socket = server.<span class="fn">accept</span>();
+            System.out.<span class="fn">println</span>(<span class="str">"연결 되었습니다."</span>);
+
+            <span class="cm">// 스트림 획득 (문자 기반 버퍼 스트림으로 래핑)</span>
+            in  = <span class="kw">new</span> <span class="cls">BufferedReader</span>(<span class="kw">new</span> <span class="cls">InputStreamReader</span>(socket.<span class="fn">getInputStream</span>()));
+            out = <span class="kw">new</span> <span class="cls">BufferedWriter</span>(<span class="kw">new</span> <span class="cls">OutputStreamWriter</span>(socket.<span class="fn">getOutputStream</span>()));
+
+            <span class="kw">while</span>(<span class="kw">true</span>) {
+                <span class="cm">// 클라이언트 메시지 수신</span>
+                <span class="type">String</span> inMsg = in.<span class="fn">readLine</span>();
+
+                <span class="cm">// "bye" 수신 시 종료</span>
+                <span class="kw">if</span>(inMsg.<span class="fn">equalsIgnoreCase</span>(<span class="str">"bye"</span>)) {
+                    System.out.<span class="fn">println</span>(<span class="str">"클라이언트가 나갔습니다."</span>);
+                    <span class="kw">break</span>;
+                }
+
+                <span class="cm">// 정상 메시지 출력 후 응답 전송</span>
+                System.out.<span class="fn">println</span>(<span class="str">"클라이언트 : "</span> + inMsg);
+                System.out.<span class="fn">print</span>(<span class="str">"보내기 >>"</span>);
+                <span class="type">String</span> outMsg = sc.<span class="fn">nextLine</span>();
+                out.<span class="fn">write</span>(outMsg + <span class="str">"\n"</span>);
+                out.<span class="fn">flush</span>();  <span class="cm">// 버퍼를 강제로 비워 전송</span>
+            }
+
+        } <span class="kw">catch</span> (<span class="type">IOException</span> e) {
+            e.<span class="fn">printStackTrace</span>();
+        } <span class="kw">finally</span> {
+            <span class="kw">try</span> {
+                <span class="cm">// 리소스 해제 (역순으로)</span>
+                sc.<span class="fn">close</span>();  out.<span class="fn">close</span>();  in.<span class="fn">close</span>();
+                socket.<span class="fn">close</span>();  server.<span class="fn">close</span>();
+            } <span class="kw">catch</span> (<span class="type">IOException</span> e) { e.<span class="fn">printStackTrace</span>(); }
+        }
+    }
+}</pre>
+      </div>
+
+      <!-- Server 코드 설명 -->
+      <div style="padding:1.2rem 1.6rem; border-top:1px solid var(--border)">
+        <table class="explain-table">
+          <thead>
+            <tr>
+              <th style="width:38%">코드</th>
+              <th style="width:12%">구분</th>
+              <th>설명</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>new ServerSocket(9999)</code></td>
+              <td><span class="tag-badge tag-s">SERVER</span></td>
+              <td>포트 9999번에 서버 소켓을 바인딩. 운영체제에 해당 포트를 점유 요청</td>
+            </tr>
+            <tr>
+              <td><code>server.accept()</code></td>
+              <td><span class="tag-badge tag-s">SERVER</span></td>
+              <td>클라이언트가 연결할 때까지 <strong>블로킹(Blocking)</strong>. 연결되면 통신용 <code>Socket</code> 객체 반환</td>
+            </tr>
+            <tr>
+              <td><code>socket.getInputStream()</code></td>
+              <td><span class="tag-badge tag-b">STREAM</span></td>
+              <td>수신용 스트림. <code>BufferedReader</code>로 래핑해 <code>readLine()</code> 사용 가능</td>
+            </tr>
+            <tr>
+              <td><code>socket.getOutputStream()</code></td>
+              <td><span class="tag-badge tag-b">STREAM</span></td>
+              <td>송신용 스트림. <code>BufferedWriter</code>로 래핑해 문자열 쓰기 편의성 확보</td>
+            </tr>
+            <tr>
+              <td><code>out.flush()</code></td>
+              <td><span class="tag-badge tag-b">STREAM</span></td>
+              <td>버퍼에 쌓인 데이터를 즉시 전송. <strong>반드시 호출</strong>해야 상대방이 수신 가능</td>
+            </tr>
+            <tr>
+              <td><code>inMsg.equalsIgnoreCase("bye")</code></td>
+              <td><span class="tag-badge tag-s">SERVER</span></td>
+              <td>종료 신호 감지. 대소문자 무관 비교. 감지 시 while 루프 탈출 후 리소스 해제</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Client 탭 -->
+    <div class="tab-panel" id="panel-client">
+      <div class="code-card" style="border:none;border-radius:0">
+        <div class="code-header">
+          <div class="code-file">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="code-filename">Client<span class="ext">.java</span></span>
+          </div>
+          <button class="copy-btn" onclick="copyCode('client-code', this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2v1"/></svg>
+            복사
+          </button>
+        </div>
+        <pre id="client-code"><span class="kw2">package</span> inhatc.cse.java.chap17.ex2_serverclient;
+
+<span class="kw2">import</span> java.io.*;
+<span class="kw2">import</span> java.net.InetSocketAddress;
+<span class="kw2">import</span> java.net.Socket;
+<span class="kw2">import</span> java.util.Scanner;
+
+<span class="kw">public class</span> <span class="cls">Client</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) {
+
+        <span class="type">Socket</span> socket = <span class="kw">null</span>;
+        <span class="type">BufferedReader</span> in = <span class="kw">null</span>;
+        <span class="type">BufferedWriter</span> out = <span class="kw">null</span>;
+        <span class="type">Scanner</span> sc = <span class="kw">new</span> <span class="cls">Scanner</span>(System.in);
+
+        <span class="kw">try</span> {
+            <span class="cm">// 서버에 연결 (IP: localhost, Port: 9999)</span>
+            socket = <span class="kw">new</span> <span class="cls">Socket</span>(<span class="str">"localhost"</span>, <span class="num">9999</span>);
+
+            <span class="cm">// 스트림 획득 (문자 기반 버퍼 스트림으로 래핑)</span>
+            in  = <span class="kw">new</span> <span class="cls">BufferedReader</span>(<span class="kw">new</span> <span class="cls">InputStreamReader</span>(socket.<span class="fn">getInputStream</span>()));
+            out = <span class="kw">new</span> <span class="cls">BufferedWriter</span>(<span class="kw">new</span> <span class="cls">OutputStreamWriter</span>(socket.<span class="fn">getOutputStream</span>()));
+
+            <span class="kw">while</span>(<span class="kw">true</span>) {
+                System.out.<span class="fn">print</span>(<span class="str">"보내기 >>"</span>);
+                <span class="type">String</span> outMsg = sc.<span class="fn">nextLine</span>();
+
+                <span class="cm">// "bye" 입력 시 서버에 알리고 종료</span>
+                <span class="kw">if</span>(outMsg.<span class="fn">equalsIgnoreCase</span>(<span class="str">"bye"</span>)) {
+                    out.<span class="fn">write</span>(outMsg + <span class="str">"\n"</span>);
+                    out.<span class="fn">flush</span>();
+                    <span class="kw">break</span>;
+                }
+
+                <span class="cm">// 정상 메시지 전송</span>
+                out.<span class="fn">write</span>(outMsg + <span class="str">"\n"</span>);
+                out.<span class="fn">flush</span>();
+
+                <span class="cm">// 서버 응답 수신 및 출력</span>
+                <span class="type">String</span> inMsg = in.<span class="fn">readLine</span>();
+                System.out.<span class="fn">println</span>(<span class="str">"서버 >> : "</span> + inMsg);
+            }
+
+        } <span class="kw">catch</span> (<span class="type">IOException</span> e) {
+            e.<span class="fn">printStackTrace</span>();
+        } <span class="kw">finally</span> {
+            <span class="kw">try</span> {
+                <span class="cm">// 리소스 해제</span>
+                sc.<span class="fn">close</span>();  out.<span class="fn">close</span>();
+                in.<span class="fn">close</span>();  socket.<span class="fn">close</span>();
+            } <span class="kw">catch</span> (<span class="type">IOException</span> e) { e.<span class="fn">printStackTrace</span>(); }
+        }
+    }
+}</pre>
+      </div>
+
+      <!-- Client 코드 설명 -->
+      <div style="padding:1.2rem 1.6rem; border-top:1px solid var(--border)">
+        <table class="explain-table">
+          <thead>
+            <tr>
+              <th style="width:38%">코드</th>
+              <th style="width:12%">구분</th>
+              <th>설명</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>new Socket("localhost", 9999)</code></td>
+              <td><span class="tag-badge tag-c">CLIENT</span></td>
+              <td>서버 IP와 포트로 연결 요청. 서버가 <code>accept()</code> 중이어야 성공. 연결 실패 시 <code>IOException</code></td>
+            </tr>
+            <tr>
+              <td><code>socket.getOutputStream()</code></td>
+              <td><span class="tag-badge tag-b">STREAM</span></td>
+              <td>서버로 데이터를 보내는 스트림. 클라이언트의 Output = 서버의 Input</td>
+            </tr>
+            <tr>
+              <td><code>socket.getInputStream()</code></td>
+              <td><span class="tag-badge tag-b">STREAM</span></td>
+              <td>서버에서 데이터를 받는 스트림. 클라이언트의 Input = 서버의 Output</td>
+            </tr>
+            <tr>
+              <td><code>out.write(outMsg + "\n")</code></td>
+              <td><span class="tag-badge tag-c">CLIENT</span></td>
+              <td><code>"\n"</code>을 반드시 포함. 상대방 <code>readLine()</code>이 줄바꿈 문자를 경계로 한 줄을 읽기 때문</td>
+            </tr>
+            <tr>
+              <td><code>in.readLine()</code></td>
+              <td><span class="tag-badge tag-b">STREAM</span></td>
+              <td>서버가 응답할 때까지 <strong>블로킹</strong>. 상대방이 <code>"\n"</code>을 보내야 반환됨</td>
+            </tr>
+            <tr>
+              <td><code>equalsIgnoreCase("bye")</code></td>
+              <td><span class="tag-badge tag-c">CLIENT</span></td>
+              <td>종료 명령 처리. 서버에 <code>"bye"</code>를 전송 후 루프 탈출 → 스트림/소켓 자원 해제</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 실행 순서 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-num">04</span>
+      <span class="section-title">프로그램 실행 순서</span>
+    </div>
+    <div class="section-body">
+      <div class="run-steps">
+        <div class="run-step">
+          <div class="run-num" style="background:var(--accent)">1</div>
+          <div>
+            <div class="run-title">서버 먼저 실행</div>
+            <div class="run-desc"><code>Server.java</code>를 먼저 실행. "연결 대기중....." 메시지가 출력되며 <code>accept()</code>에서 블로킹 상태 진입</div>
+          </div>
+        </div>
+        <div class="run-step">
+          <div class="run-num" style="background:var(--green)">2</div>
+          <div>
+            <div class="run-title">클라이언트 실행</div>
+            <div class="run-desc"><code>Client.java</code> 실행 → <code>new Socket("localhost", 9999)</code>로 서버에 접속. 서버 측에 "연결 되었습니다." 출력</div>
+          </div>
+        </div>
+        <div class="run-step">
+          <div class="run-num" style="background:var(--purple)">3</div>
+          <div>
+            <div class="run-title">클라이언트에서 메시지 입력</div>
+            <div class="run-desc">클라이언트 콘솔에 <code>보내기 >></code> 프롬프트가 표시됨. 메시지 입력 후 Enter → 서버로 전송</div>
+          </div>
+        </div>
+        <div class="run-step">
+          <div class="run-num" style="background:var(--orange)">4</div>
+          <div>
+            <div class="run-title">서버에서 응답 입력</div>
+            <div class="run-desc">서버 콘솔에 수신 메시지 출력 후 <code>보내기 >></code> 프롬프트 표시. 응답 입력 → 클라이언트로 전송</div>
+          </div>
+        </div>
+        <div class="run-step">
+          <div class="run-num" style="background:var(--pink)">5</div>
+          <div>
+            <div class="run-title">종료 — bye 입력</div>
+            <div class="run-desc">클라이언트에서 <code>bye</code> 입력 시 서버에 종료 신호 전달 → 양쪽 모두 <code>finally</code> 블록에서 리소스 해제</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 핵심 포인트 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-num">05</span>
+      <span class="section-title">핵심 포인트 &amp; 주의사항</span>
+    </div>
+    <div class="section-body">
+      <div class="point-grid">
+        <div class="point-card">
+          <div class="point-icon">🔄</div>
+          <div class="point-label">스트림 방향</div>
+          <div class="point-desc">클라이언트의 <code>OutputStream</code> ↔ 서버의 <code>InputStream</code>. 반드시 서로 반대 방향으로 연결됨</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">⚠️</div>
+          <div class="point-label">flush() 필수</div>
+          <div class="point-desc">BufferedWriter는 버퍼가 가득 차야 전송. 즉시 전송하려면 <code>flush()</code>를 반드시 호출</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">↩️</div>
+          <div class="point-label">개행 문자 "\n"</div>
+          <div class="point-desc"><code>readLine()</code>은 <code>"\n"</code>을 기준으로 한 줄을 읽음. write 시 반드시 <code>"\n"</code> 포함</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🔒</div>
+          <div class="point-label">블로킹 I/O</div>
+          <div class="point-desc">현재 코드는 단일 스레드. 상대가 응답하지 않으면 <code>readLine()</code>에서 무한 대기</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">♻️</div>
+          <div class="point-label">리소스 해제</div>
+          <div class="point-desc"><code>finally</code> 블록에서 스트림 → 소켓 순서로 해제. <code>server.close()</code>도 잊지 않도록</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🚀</div>
+          <div class="point-label">실행 순서</div>
+          <div class="point-desc">반드시 <strong>서버 먼저</strong> 실행. 클라이언트가 먼저 실행되면 <code>Connection refused</code> 예외 발생</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+function switchTab(tab) {
+  document.getElementById('panel-server').classList.remove('active');
+  document.getElementById('panel-client').classList.remove('active');
+  document.getElementById('tab-server').classList.remove('active','green','blue');
+  document.getElementById('tab-client').classList.remove('active','green','blue');
+
+  document.getElementById('panel-' + tab).classList.add('active');
+  const btn = document.getElementById('tab-' + tab);
+  btn.classList.add('active');
+  btn.classList.add(tab === 'server' ? 'green' : 'blue');
+}
+
+function copyCode(id, btn) {
+  const el = document.getElementById(id);
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = '✓ 복사됨';
+    btn.classList.add('ok');
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 복사';
+      btn.classList.remove('ok');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>

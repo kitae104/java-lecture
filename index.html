@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java 강의자료 · 강의 목차</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f8fafc;
+    --bg3: #f1f5f9;
+    --border: #e2e8f0;
+    --border2: #cbd5e1;
+    --text: #0f172a;
+    --text2: #475569;
+    --text3: #94a3b8;
+    --accent: #2563eb;
+    --accent2: #1d4ed8;
+    --green: #15803d;
+    --orange: #c2410c;
+    --pink: #be185d;
+    --yellow: #a16207;
+    --purple: #6d28d9;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 2px 6px rgba(15,23,42,0.06);
+    --shadow-lg: 0 6px 16px rgba(15,23,42,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ── 상단 헤더 ── */
+  .page-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 3rem 2.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .brand-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(37,99,235,.08);
+    border: 1px solid rgba(37,99,235,.2);
+    border-radius: 4px;
+    padding: 3px 10px;
+    margin-bottom: 1rem;
+  }
+  .page-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .4rem;
+  }
+  .page-title span { color: var(--accent); }
+  .page-sub {
+    font-size: 14px;
+    color: var(--text2);
+  }
+  .meta-chips {
+    display: flex;
+    gap: 8px;
+    margin-top: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .chip {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    background: var(--bg);
+    font-family: var(--mono);
+  }
+
+  /* ── 본문 ── */
+  .content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.2rem;
+  }
+
+  /* ── 카테고리 ── */
+  .category {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .category-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .category-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .category-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .category-meta {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: .04em;
+  }
+
+  /* ── 카드 그리드 ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem 1rem;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
+  }
+
+  .card-num {
+    font-size: 10px;
+    font-family: var(--mono);
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--accent);
+    margin-bottom: .4rem;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .35rem;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.65;
+    flex: 1;
+    margin-bottom: .9rem;
+  }
+  .card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text3);
+  }
+  .card-cta {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .card:hover .card-cta { text-decoration: underline; }
+
+  .card-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .card-tag {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text2);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+
+  /* 예정 카드 */
+  .card.upcoming {
+    opacity: .55;
+    cursor: not-allowed;
+    background: var(--bg);
+    border-style: dashed;
+  }
+  .card.upcoming:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    border-color: var(--border2);
+  }
+  .card.upcoming .card-cta { color: var(--text3); }
+
+  /* ── 푸터 ── */
+  .footer {
+    text-align: center;
+    padding: 2rem 1rem 3rem;
+    font-size: 12px;
+    color: var(--text3);
+    font-family: var(--mono);
+    border-top: 1px solid var(--border);
+  }
+  .footer a {
+    color: var(--accent);
+  }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ── 모바일 ── */
+  @media (max-width: 600px) {
+    .page-header { padding: 2rem 1.2rem 1.6rem; }
+    .page-title  { font-size: 1.6rem; }
+    .content     { padding: 1.6rem 1rem 3rem; gap: 1.6rem; }
+    .card-grid   { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ──────────── 헤더 ──────────── -->
+<div class="page-header">
+  <div class="header-inner">
+    <div class="brand-tag">Java Lecture · 강의 자료실</div>
+    <h1 class="page-title">Java <span>강의 목차</span></h1>
+    <p class="page-sub">카테고리별로 정리된 Java 수업 자료. 카드를 클릭하면 강의 페이지로 이동합니다.</p>
+    <div class="meta-chips">
+      <span class="chip">정적 사이트</span>
+      <span class="chip">Vercel 배포</span>
+      <span class="chip">수업용 라이트 테마</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────── 본문 ──────────── -->
+<div class="content">
+
+  <!-- Network -->
+  <section class="category">
+    <div class="category-head">
+      <span class="category-icon">🌐</span>
+      <span class="category-title">Network · 네트워크 프로그래밍</span>
+      <span class="category-meta">network/</span>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="./network/socket_lecture.html">
+        <div class="card-num">CHAPTER 17</div>
+        <div class="card-title">소켓 통신 (Socket)</div>
+        <div class="card-desc">java.net 패키지를 이용한 TCP 기반 서버-클라이언트 양방향 채팅 프로그램. ServerSocket / Socket / BufferedReader 흐름.</div>
+        <div class="card-foot">
+          <div class="card-tags">
+            <span class="card-tag">Socket</span>
+            <span class="card-tag">TCP</span>
+          </div>
+          <span class="card-cta">강의 보기 →</span>
+        </div>
+      </a>
+
+      <div class="card upcoming">
+        <div class="card-num">예정</div>
+        <div class="card-title">TCP / UDP 비교</div>
+        <div class="card-desc">신뢰성 vs 성능. DatagramSocket을 이용한 UDP 통신 예제까지 포함 예정.</div>
+        <div class="card-foot">
+          <div class="card-tags">
+            <span class="card-tag">UDP</span>
+          </div>
+          <span class="card-cta">준비 중</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Threads -->
+  <section class="category">
+    <div class="category-head">
+      <span class="category-icon">🧵</span>
+      <span class="category-title">Threads · 멀티스레드</span>
+      <span class="category-meta">thread/ (예정)</span>
+    </div>
+    <div class="card-grid">
+      <div class="card upcoming">
+        <div class="card-num">예정</div>
+        <div class="card-title">Thread 기초</div>
+        <div class="card-desc">Thread 클래스 / Runnable 인터페이스, 라이프사이클, 동기화(synchronized).</div>
+        <div class="card-foot">
+          <div class="card-tags">
+            <span class="card-tag">Thread</span>
+          </div>
+          <span class="card-cta">준비 중</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Collections -->
+  <section class="category">
+    <div class="category-head">
+      <span class="category-icon">📦</span>
+      <span class="category-title">Collections · 컬렉션 프레임워크</span>
+      <span class="category-meta">collection/ (예정)</span>
+    </div>
+    <div class="card-grid">
+      <div class="card upcoming">
+        <div class="card-num">예정</div>
+        <div class="card-title">List / Set / Map</div>
+        <div class="card-desc">ArrayList, LinkedList, HashSet, HashMap의 내부 구조와 사용 시점.</div>
+        <div class="card-foot">
+          <div class="card-tags">
+            <span class="card-tag">Generic</span>
+          </div>
+          <span class="card-cta">준비 중</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ──────────── 푸터 ──────────── -->
+<footer class="footer">
+  © Java Lecture · 정적 사이트로 Vercel에 배포됨
+</footer>
+
+</body>
+</html>
