@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 17-3 · GUI 멀티채팅 | Java 강의자료</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #ffffff;
+    --bg2:       #f8fafc;
+    --bg3:       #f1f5f9;
+    --border:    #e2e8f0;
+    --border2:   #cbd5e1;
+    --text:      #0f172a;
+    --text2:     #475569;
+    --text3:     #94a3b8;
+    --accent:    #2563eb;
+    --accent2:   #1d4ed8;
+    --accent-lt: #eff4ff;
+    --accent-dk: #1d4ed8;
+    --blue:      #2563eb;
+    --blue-lt:   #eff4ff;
+    --green:     #15803d;
+    --green-lt:  #ecfdf5;
+    --orange:    #c2410c;
+    --orange-lt: #fffbeb;
+    --red:       #dc2626;
+    --red-lt:    #fef2f2;
+    --pink:      #be185d;
+    --yellow:    #a16207;
+    --purple:    #6d28d9;
+    --purple-lt: #f5f3ff;
+    --teal:      #0891b2;
+    --teal-lt:   #ecfeff;
+    --rose:      #e11d48;
+    --rose-lt:   #fff1f2;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 2px 6px rgba(15,23,42,0.06);
+    --shadow:    0 2px 6px rgba(15,23,42,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.7; }
+
+  /* ── 헤더 ── */
+  .page-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    padding: 2.8rem 3rem 2.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .page-header::after { display: none; }
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: .8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .breadcrumb span { color: var(--text3); }
+  .step-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(37,99,235,.08);
+    border: 1px solid rgba(37,99,235,.2);
+    border-radius: 4px;
+    padding: 3px 12px;
+    margin-bottom: 1rem;
+  }
+  .page-title { font-size: 2rem; font-weight: 700; color: var(--text); margin-bottom: .5rem; line-height: 1.3; }
+  .page-sub { font-size: 14px; color: var(--text2); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1.4rem; }
+  .tag {
+    font-size: 11px; font-family: var(--mono);
+    padding: 3px 10px; border-radius: 20px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+
+  /* ── 본문 ── */
+  .content { max-width: 980px; margin: 0 auto; padding: 2.5rem 2rem 5rem; display: flex; flex-direction: column; gap: 2rem; }
+
+  /* ── 섹션 카드 ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); overflow: hidden; }
+  .card-head { display: flex; align-items: center; gap: 10px; padding: .9rem 1.4rem; background: var(--bg3); border-bottom: 1px solid var(--border); }
+  .sec-num {
+    font-size: 11px; font-weight: 700; font-family: var(--mono);
+    color: var(--accent); background: var(--accent-lt);
+    border: 1px solid rgba(22,163,74,.2); border-radius: 5px; padding: 2px 8px;
+  }
+  .sec-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .card-body { padding: 1.5rem 1.8rem; }
+
+  /* ── 텍스트 ── */
+  .desc { font-size: 14px; color: var(--text2); line-height: 1.85; }
+  .desc + .desc { margin-top: .6rem; }
+  .desc strong { color: var(--text); font-weight: 600; }
+  .desc code, .ic {
+    font-family: var(--mono); font-size: 12.5px;
+    color: var(--orange); background: var(--orange-lt);
+    border: 1px solid rgba(217,119,6,.15); border-radius: 4px; padding: 1px 6px;
+  }
+
+  /* ── 아키텍처 다이어그램 ── */
+  .arch-wrap {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: .8rem;
+  }
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 50px 1.6fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .arch-server-col, .arch-client-col { display: flex; flex-direction: column; gap: 8px; }
+  .arch-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; text-align: center;
+    padding: .35rem .6rem; border-radius: 5px; margin-bottom: 4px;
+  }
+  .arch-label.sv { background: var(--accent-lt); color: var(--accent); border: 1px solid rgba(22,163,74,.2); }
+  .arch-label.cl { background: var(--blue-lt);   color: var(--blue);   border: 1px solid rgba(37,99,235,.2); }
+  .arch-box {
+    border-radius: 8px; padding: .55rem .85rem;
+    font-family: var(--mono); font-size: 11.5px;
+    border: 1px solid; line-height: 1.5;
+  }
+  .arch-box.main { background: #fff; border-color: var(--border2); color: var(--text2); }
+  .arch-box.thread { background: var(--purple-lt); border-color: rgba(124,58,237,.25); color: var(--purple); }
+  .arch-box.client-b { background: var(--blue-lt); border-color: rgba(37,99,235,.2); color: var(--blue); }
+  .arch-box-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 2px; }
+  .arch-mid {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 6px; padding-top: 48px;
+  }
+  .arch-arrow { font-size: 16px; color: var(--rose); font-weight: 700; }
+  .arch-arrow-label { font-size: 10px; color: var(--text3); text-align: center; line-height: 1.4; }
+  .clients-row { display: flex; gap: 8px; }
+
+  /* ── 스레드 흐름 ── */
+  .thread-flow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: .8rem;
+  }
+  .thread-lane {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .lane-head {
+    padding: .5rem .9rem;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .lane-head.main-t { background: var(--accent-lt); color: var(--accent); }
+  .lane-head.th1    { background: var(--purple-lt); color: var(--purple); }
+  .lane-head.th2    { background: var(--blue-lt);   color: var(--blue); }
+  .lane-body { padding: .7rem; display: flex; flex-direction: column; gap: 5px; background: var(--bg2); }
+  .lane-step {
+    padding: .4rem .6rem;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-family: var(--mono);
+    color: var(--text2);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    line-height: 1.5;
+  }
+  .lane-step.key { background: #fff3cd; border-color: #ffc107; color: #856404; font-weight: 600; }
+  .lane-sep { text-align: center; font-size: 14px; color: var(--text3); }
+
+  /* ── 코드 탭/블록 ── */
+  .code-tabs {
+    display: flex; gap: 4px;
+    padding: .8rem 1.2rem .7rem;
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-size: 12px; font-weight: 600; font-family: var(--mono);
+    padding: 5px 14px; border-radius: 6px;
+    border: 1px solid var(--border2); background: var(--bg2);
+    color: var(--text2); cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .tab-btn:hover { background: var(--bg3); }
+  .tab-btn.a-green  { background: var(--accent-lt); color: var(--accent); border-color: rgba(22,163,74,.35); }
+  .tab-btn.a-purple { background: var(--purple-lt); color: var(--purple); border-color: rgba(124,58,237,.35); }
+  .tab-btn.a-blue   { background: var(--blue-lt);   color: var(--blue);   border-color: rgba(37,99,235,.35); }
+  .tab-panel { display: none; }
+  .tab-panel.show { display: block; }
+
+  .code-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .6rem 1.2rem; background: var(--bg3); border-bottom: 1px solid var(--border);
+  }
+  .dot-row { display: flex; gap: 5px; }
+  .d-r { width:10px;height:10px;border-radius:50%;background:#ff5f57; }
+  .d-y { width:10px;height:10px;border-radius:50%;background:#febc2e; }
+  .d-g { width:10px;height:10px;border-radius:50%;background:#28c840; }
+  .filename { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); margin-left: 6px; }
+  .filename .ext { color: var(--accent); }
+  .copy-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-family: var(--mono);
+    padding: 4px 11px; border-radius: 6px;
+    border: 1px solid var(--border2); background: var(--bg2);
+    color: var(--text2); cursor: pointer; transition: all .15s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+  .copy-btn.ok { color: var(--accent); border-color: var(--accent); background: var(--accent-lt); }
+  pre {
+    margin: 0; padding: 1.4rem 1.6rem;
+    background: #1a2310; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px;
+    line-height: 1.85; tab-size: 4; color: #c8d8b8;
+  }
+  .kw   { color: #7dd3fc; font-weight: 500; }
+  .kw2  { color: #a78bfa; }
+  .type { color: #86efac; }
+  .str  { color: #fde68a; }
+  .cm   { color: #6a8f5a; font-style: italic; }
+  .num  { color: #fb923c; }
+  .fn   { color: #f472b6; }
+  .cls  { color: #4ade80; }
+  .ann  { color: #facc15; }
+  .hl   { background: rgba(74,222,128,.08); }
+
+  /* ── 설명 테이블 ── */
+  .ex-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 1.2rem; }
+  .ex-table th {
+    text-align: left; padding: .55rem .9rem;
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text3); background: var(--bg3); border-bottom: 1.5px solid var(--border2);
+  }
+  .ex-table td { padding: .6rem .9rem; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; line-height: 1.65; }
+  .ex-table tr:last-child td { border-bottom: none; }
+  .ex-table tr:hover td { background: var(--bg3); }
+  .ex-table code {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--orange); background: var(--orange-lt);
+    border: 1px solid rgba(217,119,6,.12); border-radius: 3px; padding: 1px 5px; white-space: nowrap;
+  }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: var(--mono); white-space: nowrap; }
+  .b-green  { background: var(--accent-lt); color: var(--accent); border: 1px solid rgba(22,163,74,.2); }
+  .b-purple { background: var(--purple-lt); color: var(--purple); border: 1px solid rgba(124,58,237,.2); }
+  .b-blue   { background: var(--blue-lt);   color: var(--blue);   border: 1px solid rgba(37,99,235,.2); }
+  .b-orange { background: var(--orange-lt); color: var(--orange); border: 1px solid rgba(217,119,6,.2); }
+
+  /* ── 포인트 그리드 ── */
+  .point-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: .5rem; }
+  .point-card { border-radius: 10px; padding: 1rem; border: 1px solid var(--border); background: var(--bg3); }
+  .point-icon { font-size: 20px; margin-bottom: .4rem; }
+  .point-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: .3rem; }
+  .point-body { font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+  .point-body code {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--orange); background: var(--orange-lt);
+    border-radius: 3px; padding: 0 4px;
+  }
+
+  /* ── 비교표 ── */
+  .vs-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: .8rem; }
+  .vs-table th {
+    padding: .6rem 1rem; font-size: 12px; font-weight: 700;
+    border: 1px solid var(--border); text-align: center;
+  }
+  .vs-table th.h1 { background: var(--orange-lt); color: var(--orange); }
+  .vs-table th.h2 { background: var(--accent-lt); color: var(--accent); }
+  .vs-table th.h0 { background: var(--bg3); color: var(--text2); width: 28%; }
+  .vs-table td { padding: .55rem 1rem; border: 1px solid var(--border); color: var(--text2); vertical-align: top; line-height: 1.6; }
+  .vs-table tr:hover td { background: var(--bg3); }
+  .vs-table td.cat { font-weight: 700; color: var(--text); background: var(--bg3); font-size: 12px; }
+  .ok  { color: var(--accent); font-weight: 600; }
+  .bad { color: var(--red);    font-weight: 600; }
+
+  /* ── 인포 박스 ── */
+  .info-box { display: flex; gap: 10px; padding: .9rem 1.1rem; border-radius: 8px; font-size: 13px; line-height: 1.7; margin-top: 1rem; border: 1px solid; }
+  .info-box.green  { background: var(--accent-lt); border-color: rgba(22,163,74,.2); color: #14532d; }
+  .info-box.orange { background: var(--orange-lt); border-color: rgba(217,119,6,.2);  color: #92400e; }
+  .info-box.purple { background: var(--purple-lt); border-color: rgba(124,58,237,.2); color: #4c1d95; }
+  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── 실행 단계 ── */
+  .flow-steps { display: flex; flex-direction: column; gap: 8px; margin-top: .5rem; }
+  .flow-step { display: flex; align-items: flex-start; gap: 14px; padding: .9rem 1.1rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; }
+  .flow-num { width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--mono);flex-shrink:0;margin-top:1px;color:#fff; }
+  .flow-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .flow-desc { font-size: 12.5px; color: var(--text2); margin-top: 2px; line-height: 1.6; }
+  .flow-desc code { font-family:var(--mono);font-size:11.5px;color:var(--orange);background:var(--orange-lt);border-radius:3px;padding:0 4px; }
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="page-header">
+  <div class="breadcrumb">Chapter 17 <span>›</span> 네트워크 프로그래밍 <span>›</span> 실습 3</div>
+  <div class="step-badge">Step 3 of 3 · 멀티스레드 + GUI</div>
+  <h1 class="page-title">GUI 멀티스레드 채팅<br><span style="font-weight:300;font-size:1.5rem">ServerThread + ArrayList 브로드캐스트</span></h1>
+  <p class="page-sub">다수의 클라이언트가 동시 접속 — 스레드마다 클라이언트를 담당하고, 수신 메시지를 전원에게 전달</p>
+  <div class="tag-row">
+    <span class="tag">Thread extends</span>
+    <span class="tag">ArrayList&lt;ServerThread&gt;</span>
+    <span class="tag">Broadcast</span>
+    <span class="tag">ServerFrame</span>
+    <span class="tag">ChatFrame</span>
+    <span class="tag">ServerThread</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- 01 1:1 vs N:N 비교 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">01</span>
+      <span class="sec-title">GUI 1:1 채팅 vs GUI 멀티 채팅 비교</span>
+    </div>
+    <div class="card-body">
+      <table class="vs-table">
+        <thead>
+          <tr>
+            <th class="h0">구분</th>
+            <th class="h1">이전 단계 (1:1 GUI)</th>
+            <th class="h2">이번 단계 (멀티 GUI)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="cat">클라이언트 수</td>
+            <td><span class="bad">1개</span> — accept() 1회 후 종료</td>
+            <td><span class="ok">N개</span> — while(true) accept() 반복</td>
+          </tr>
+          <tr>
+            <td class="cat">수신 처리</td>
+            <td>메인 스레드에서 while(true)</td>
+            <td><span class="ok">ServerThread</span>마다 별도 스레드</td>
+          </tr>
+          <tr>
+            <td class="cat">메시지 전달</td>
+            <td>1:1 전달</td>
+            <td><span class="ok">브로드캐스트</span> — 전원에게 전달</td>
+          </tr>
+          <tr>
+            <td class="cat">클라이언트 관리</td>
+            <td>단일 Socket 변수</td>
+            <td><span class="ok">ArrayList&lt;ServerThread&gt;</span> 로 관리</td>
+          </tr>
+          <tr>
+            <td class="cat">GUI 응답성</td>
+            <td>수신 중 GUI 잠김 가능</td>
+            <td><span class="ok">스레드 분리</span>로 GUI 항상 응답</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 02 전체 구조 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">02</span>
+      <span class="sec-title">전체 아키텍처</span>
+    </div>
+    <div class="card-body">
+      <div class="arch-wrap">
+        <div class="arch-grid">
+          <!-- 서버 -->
+          <div class="arch-server-col">
+            <div class="arch-label sv">🖧 Server (ServerFrame)</div>
+            <div class="arch-box main">
+              <div class="arch-box-label">ServerSocket</div>
+              new ServerSocket(9999)
+            </div>
+            <div style="text-align:center;font-size:18px;color:var(--text3)">↓</div>
+            <div class="arch-box main">
+              <div class="arch-box-label">while(true) accept()</div>
+              Socket socket = accept()
+            </div>
+            <div style="text-align:center;font-size:18px;color:var(--text3)">↓</div>
+            <div class="arch-box thread">
+              <div class="arch-box-label" style="color:#7c3aed">Thread 생성 & 시작</div>
+              new ServerThread(socket, threadList)<br>st.start()
+            </div>
+            <div style="text-align:center;font-size:14px;color:var(--text3);font-size:11px;margin-top:4px">클라이언트마다 반복</div>
+          </div>
+
+          <!-- 화살표 -->
+          <div class="arch-mid">
+            <div class="arch-arrow">↔</div>
+            <div class="arch-arrow-label">TCP<br>소켓</div>
+            <div class="arch-arrow" style="margin-top:24px">↔</div>
+            <div class="arch-arrow-label">TCP<br>소켓</div>
+          </div>
+
+          <!-- 클라이언트들 -->
+          <div class="arch-client-col">
+            <div class="arch-label cl">🖥 Clients (ChatFrame)</div>
+            <div class="clients-row">
+              <div class="arch-box client-b" style="flex:1">
+                <div class="arch-box-label" style="color:#2563eb">Client A</div>
+                new Socket("localhost", 9999)<br>runClient() → while 수신
+              </div>
+              <div class="arch-box client-b" style="flex:1">
+                <div class="arch-box-label" style="color:#2563eb">Client B</div>
+                new Socket("localhost", 9999)<br>runClient() → while 수신
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="arch-box thread">
+                <div class="arch-box-label" style="color:#7c3aed">ServerThread (per client)</div>
+                run() : in.readLine() 수신<br>→ sendToAllClients() 전원 전달
+              </div>
+            </div>
+            <div style="margin-top:8px">
+              <div class="arch-box main" style="border-color:rgba(22,163,74,.4)">
+                <div class="arch-box-label" style="color:var(--accent)">threadList (ArrayList)</div>
+                [ServerThread-A, ServerThread-B, ...]<br>접속 시 add / 종료 시 remove
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box green" style="margin-top:1rem">
+        <span class="icon">💡</span>
+        <span>핵심 패턴: <strong>accept() → new ServerThread(socket, threadList) → st.start()</strong>를 while(true)로 반복. 각 스레드가 독립적으로 1개 클라이언트를 담당하고, 메시지 수신 시 threadList 전원에게 브로드캐스트</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 스레드 동작 흐름 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">03</span>
+      <span class="sec-title">스레드 동작 흐름 (클라이언트 2명 접속 시)</span>
+    </div>
+    <div class="card-body">
+      <div class="thread-flow">
+        <div class="thread-lane">
+          <div class="lane-head main-t">메인 스레드 (ServerFrame)</div>
+          <div class="lane-body">
+            <div class="lane-step">new ServerSocket(9999)</div>
+            <div class="lane-step key">accept() ← Client A 접속</div>
+            <div class="lane-step">new ServerThread(A)</div>
+            <div class="lane-step">threadList.add(A)</div>
+            <div class="lane-step">A.start()</div>
+            <div class="lane-sep">↓</div>
+            <div class="lane-step key">accept() ← Client B 접속</div>
+            <div class="lane-step">new ServerThread(B)</div>
+            <div class="lane-step">threadList.add(B)</div>
+            <div class="lane-step">B.start()</div>
+            <div class="lane-sep">↓</div>
+            <div class="lane-step" style="color:var(--text3)">다음 접속 대기...</div>
+          </div>
+        </div>
+        <div class="thread-lane">
+          <div class="lane-head th1">ServerThread-A</div>
+          <div class="lane-body">
+            <div class="lane-step" style="color:var(--text3)">생성 대기</div>
+            <div class="lane-sep">↓</div>
+            <div class="lane-step">run() 시작</div>
+            <div class="lane-step">스트림 획득</div>
+            <div class="lane-step key">while: readLine() 대기</div>
+            <div class="lane-sep">↓</div>
+            <div class="lane-step">"안녕" 수신</div>
+            <div class="lane-step key">sendToAll("안녕")</div>
+            <div class="lane-step">→ A에게 전달</div>
+            <div class="lane-step">→ B에게 전달</div>
+            <div class="lane-sep">↓</div>
+            <div class="lane-step">readLine() 다시 대기</div>
+          </div>
+        </div>
+        <div class="thread-lane">
+          <div class="lane-head th2">ServerThread-B</div>
+          <div class="lane-body">
+            <div class="lane-step" style="color:var(--text3)">생성 대기</div>
+            <div class="lane-step" style="color:var(--text3)">생성 대기</div>
+            <div class="lane-sep">↓</div>
+            <div class="lane-step">run() 시작</div>
+            <div class="lane-step">스트림 획득</div>
+            <div class="lane-step key">while: readLine() 대기</div>
+            <div class="lane-sep">↓</div>
+            <div class="lane-step" style="color:var(--text3)">(수신 대기 중)</div>
+            <div class="lane-step" style="color:var(--accent)">← "안녕" 수신(브로드)</div>
+            <div class="lane-sep">↓</div>
+            <div class="lane-step">readLine() 다시 대기</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box purple" style="margin-top:1rem">
+        <span class="icon">🔑</span>
+        <span><strong>sendToAllClients()</strong>에서 threadList를 for-each로 순회하며 모든 스레드의 <code>out</code>에 write. 이때 각 스레드의 <code>out</code> 필드에 직접 접근하므로 <strong>같은 패키지 내 접근</strong>이 필요합니다.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 소스 코드 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">04</span>
+      <span class="sec-title">소스 코드 (3개 파일)</span>
+    </div>
+    <div class="code-tabs" id="tabs2">
+      <button class="tab-btn a-purple" onclick="switchTab3('st-panel','sf2-panel','cf2-panel','tabs2',this,'a-purple')">ServerThread.java</button>
+      <button class="tab-btn" onclick="switchTab3('sf2-panel','st-panel','cf2-panel','tabs2',this,'a-green')">ServerFrame.java</button>
+      <button class="tab-btn" onclick="switchTab3('cf2-panel','st-panel','sf2-panel','tabs2',this,'a-blue')">ChatFrame.java (Client)</button>
+    </div>
+
+    <!-- ── ServerThread ── -->
+    <div class="tab-panel show" id="st-panel">
+      <div class="code-bar">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="dot-row"><span class="d-r"></span><span class="d-y"></span><span class="d-g"></span></div>
+          <span class="filename">ServerThread<span class="ext">.java</span></span>
+          <span style="font-size:10px;color:var(--purple);background:var(--purple-lt);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:1px 6px;font-family:var(--mono)">핵심 클래스</span>
+        </div>
+        <button class="copy-btn" onclick="copyCode('st-code',this)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          복사
+        </button>
+      </div>
+      <pre id="st-code"><span class="kw2">package</span> inhatc.cse.java.chap17.ex3_multichat;
+
+<span class="kw2">import</span> java.io.*;
+<span class="kw2">import</span> java.net.Socket;
+<span class="kw2">import</span> java.util.ArrayList;
+
+<span class="cm">/**
+ * 클라이언트 1개를 전담하는 스레드
+ * - run()      : 해당 클라이언트의 메시지 수신 루프
+ * - sendToAll(): 수신한 메시지를 threadList 전원에게 브로드캐스트
+ */</span>
+<span class="kw">public class</span> <span class="cls">ServerThread</span> <span class="kw">extends</span> <span class="cls">Thread</span> {
+
+    <span class="kw">private</span> <span class="type">Socket</span>                    socket;
+    <span class="kw">private</span> <span class="type">ArrayList</span>&lt;<span class="cls">ServerThread</span>&gt; threadList;  <span class="cm">// 모든 스레드 목록 (공유)</span>
+    <span class="kw">private</span> <span class="type">BufferedReader</span>            in;
+    <span class="kw">          BufferedWriter</span>            out;   <span class="cm">// sendToAllClients에서 접근 (패키지 접근)</span>
+
+    <span class="kw">public</span> <span class="fn">ServerThread</span>(<span class="type">Socket</span> socket, <span class="type">ArrayList</span>&lt;<span class="cls">ServerThread</span>&gt; threadList) {
+        <span class="kw">this</span>.socket     = socket;
+        <span class="kw">this</span>.threadList = threadList;
+    }
+
+    <span class="cm">// ── 스레드 실행: 수신 루프 ──────────────────────────────</span>
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">run</span>() {
+        <span class="kw">try</span> {
+            in  = <span class="kw">new</span> <span class="cls">BufferedReader</span>(<span class="kw">new</span> <span class="cls">InputStreamReader</span>(socket.<span class="fn">getInputStream</span>()));
+            out = <span class="kw">new</span> <span class="cls">BufferedWriter</span>(<span class="kw">new</span> <span class="cls">OutputStreamWriter</span>(socket.<span class="fn">getOutputStream</span>()));
+
+            <span class="type">String</span> inMsg;
+            <span class="kw">while</span>(<span class="kw">true</span>) {
+                inMsg = in.<span class="fn">readLine</span>();               <span class="cm">// 담당 클라이언트 메시지 수신</span>
+                System.out.<span class="fn">println</span>(<span class="str">"받은 메시지 : "</span> + inMsg);
+
+                <span class="kw">if</span>(inMsg.<span class="fn">equalsIgnoreCase</span>(<span class="str">"bye"</span>)) {
+                    threadList.<span class="fn">remove</span>(<span class="kw">this</span>);         <span class="cm">// 목록에서 제거 후 종료</span>
+                    <span class="kw">break</span>;
+                }
+                <span class="fn">sendToAllClients</span>(inMsg);             <span class="cm">// 전원 브로드캐스트</span>
+            }
+        } <span class="kw">catch</span> (<span class="type">IOException</span> e) {
+            threadList.<span class="fn">remove</span>(<span class="kw">this</span>);               <span class="cm">// 예외 발생 시에도 목록 제거</span>
+            e.<span class="fn">printStackTrace</span>();
+        }
+    }
+
+    <span class="cm">// ── 브로드캐스트: threadList 순회하며 전원 전송 ──────────</span>
+    <span class="kw">private void</span> <span class="fn">sendToAllClients</span>(String outMsg) {
+        <span class="kw">for</span> (<span class="type">ServerThread</span> st : threadList) {
+            <span class="kw">try</span> {
+                st.out.<span class="fn">write</span>(outMsg + <span class="str">"\n"</span>);   <span class="cm">// 각 스레드의 out 필드에 직접 접근</span>
+                st.out.<span class="fn">flush</span>();
+            } <span class="kw">catch</span> (<span class="type">IOException</span> e) {
+                e.<span class="fn">printStackTrace</span>();
+            }
+        }
+    }
+}</pre>
+      <div style="padding:1.2rem 1.6rem;border-top:1px solid var(--border)">
+        <table class="ex-table">
+          <thead><tr><th style="width:36%">코드</th><th style="width:14%">분류</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>extends Thread</code></td>
+              <td><span class="badge b-purple">THREAD</span></td>
+              <td>Thread 상속으로 <code>run()</code> 오버라이드. <code>st.start()</code> 호출 시 별도 스레드에서 실행</td>
+            </tr>
+            <tr>
+              <td><code>ArrayList&lt;ServerThread&gt; threadList</code></td>
+              <td><span class="badge b-purple">THREAD</span></td>
+              <td>ServerFrame에서 생성한 목록을 참조로 공유. 모든 스레드가 같은 리스트를 가리킴</td>
+            </tr>
+            <tr>
+              <td><code>BufferedWriter out</code> (접근 제한자 없음)</td>
+              <td><span class="badge b-orange">설계</span></td>
+              <td>패키지 접근(default) — <code>sendToAllClients</code>에서 다른 스레드의 <code>st.out</code>에 접근하기 위해 의도적으로 private 제외</td>
+            </tr>
+            <tr>
+              <td><code>sendToAllClients(inMsg)</code></td>
+              <td><span class="badge b-purple">THREAD</span></td>
+              <td>threadList를 for-each 순회 → 모든 클라이언트에게 메시지 전달 = <strong>브로드캐스트</strong></td>
+            </tr>
+            <tr>
+              <td><code>threadList.remove(this)</code></td>
+              <td><span class="badge b-orange">설계</span></td>
+              <td>"bye" 수신 또는 IOException 시 자신을 목록에서 제거 → 이후 브로드캐스트 대상에서 제외</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── ServerFrame ── -->
+    <div class="tab-panel" id="sf2-panel">
+      <div class="code-bar">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="dot-row"><span class="d-r"></span><span class="d-y"></span><span class="d-g"></span></div>
+          <span class="filename">ServerFrame<span class="ext">.java</span></span>
+        </div>
+        <button class="copy-btn" onclick="copyCode('sf2-code',this)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          복사
+        </button>
+      </div>
+      <pre id="sf2-code"><span class="kw2">package</span> inhatc.cse.java.chap17.ex3_multichat;
+
+<span class="kw2">import</span> javax.swing.*;
+<span class="kw2">import</span> java.awt.*;
+<span class="kw2">import</span> java.awt.event.ActionEvent;
+<span class="kw2">import</span> java.awt.event.ActionListener;
+<span class="kw2">import</span> java.io.*;
+<span class="kw2">import</span> java.net.ServerSocket;
+<span class="kw2">import</span> java.net.Socket;
+<span class="kw2">import</span> java.util.ArrayList;
+
+<span class="kw">public class</span> <span class="cls">ServerFrame</span> <span class="kw">extends</span> <span class="cls">JFrame</span> <span class="kw">implements</span> <span class="cls">ActionListener</span> {
+
+    <span class="kw">private</span> <span class="type">JPanel</span>    panelCenter, panelSouth;
+    <span class="kw">private</span> <span class="type">JTextField</span> tf;
+    <span class="kw">private</span> <span class="type">JButton</span>    btn;
+    <span class="kw">private</span> <span class="type">JTextArea</span>  ta;
+
+    <span class="kw">private</span> <span class="type">ServerSocket</span> server = <span class="kw">null</span>;
+    <span class="kw">private</span> <span class="type">BufferedWriter</span> out  = <span class="kw">null</span>;
+
+    <span class="cm">// ── 핵심: 접속 클라이언트 스레드 목록 ────────────────</span>
+    <span class="kw">private</span> <span class="type">ArrayList</span>&lt;<span class="cls">ServerThread</span>&gt; threadList = <span class="kw">new</span> <span class="cls">ArrayList</span>&lt;&gt;();
+
+    <span class="kw">public</span> <span class="fn">ServerFrame</span>(String title, <span class="kw">int</span> width, <span class="kw">int</span> height, <span class="kw">int</span> x, <span class="kw">int</span> y) {
+        <span class="fn">setTitle</span>(title);
+        <span class="fn">setDefaultCloseOperation</span>(JFrame.EXIT_ON_CLOSE);
+        <span class="fn">setLocation</span>(x, y);
+        <span class="fn">setSize</span>(width, height);
+        <span class="fn">setLayout</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+        <span class="fn">setCenter</span>(); <span class="fn">setSouth</span>();
+        <span class="fn">setVisible</span>(<span class="kw">true</span>);
+        tf.<span class="fn">requestFocus</span>();
+    }
+
+    <span class="kw">private void</span> <span class="fn">setCenter</span>() {
+        panelCenter = <span class="kw">new</span> <span class="cls">JPanel</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+        ta = <span class="kw">new</span> <span class="cls">JTextArea</span>(<span class="num">7</span>, <span class="num">20</span>);
+        ta.<span class="fn">setEditable</span>(<span class="kw">false</span>); ta.<span class="fn">setLineWrap</span>(<span class="kw">true</span>);
+        panelCenter.<span class="fn">add</span>(<span class="kw">new</span> <span class="cls">JScrollPane</span>(ta,
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
+        <span class="fn">add</span>(panelCenter, BorderLayout.CENTER);
+    }
+
+    <span class="kw">private void</span> <span class="fn">setSouth</span>() {
+        panelSouth = <span class="kw">new</span> <span class="cls">JPanel</span>();
+        tf = <span class="kw">new</span> <span class="cls">JTextField</span>(<span class="num">18</span>); tf.<span class="fn">addActionListener</span>(<span class="kw">this</span>);
+        btn = <span class="kw">new</span> <span class="cls">JButton</span>(<span class="str">"전송"</span>); btn.<span class="fn">addActionListener</span>(<span class="kw">this</span>);
+        panelSouth.<span class="fn">add</span>(tf); panelSouth.<span class="fn">add</span>(btn);
+        <span class="fn">add</span>(panelSouth, BorderLayout.SOUTH);
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">actionPerformed</span>(<span class="type">ActionEvent</span> e) {
+        <span class="kw">if</span>(e.<span class="fn">getSource</span>() == btn || e.<span class="fn">getSource</span>() == tf) {
+            <span class="kw">try</span> {
+                <span class="type">String</span> outMsg = tf.<span class="fn">getText</span>();
+                out.<span class="fn">write</span>(outMsg + <span class="str">"\n"</span>); out.<span class="fn">flush</span>();
+                ta.<span class="fn">append</span>(<span class="str">"[서버] : "</span> + outMsg + <span class="str">"\n"</span>);
+                tf.<span class="fn">setText</span>(<span class="str">""</span>); tf.<span class="fn">requestFocus</span>();
+            } <span class="kw">catch</span> (<span class="type">IOException</span> e1) { e1.<span class="fn">printStackTrace</span>(); }
+        }
+    }
+
+    <span class="cm">// ── 소켓 대기 루프: 클라이언트마다 ServerThread 생성 ──</span>
+    <span class="kw">private void</span> <span class="fn">setSocket</span>() {
+        <span class="kw">try</span> {
+            server = <span class="kw">new</span> <span class="cls">ServerSocket</span>(<span class="num">9999</span>);
+            ta.<span class="fn">append</span>(<span class="str">"연결 대기중.....\n"</span>);
+
+            <span class="kw">while</span>(<span class="kw">true</span>) {                               <span class="cm">// 다중 클라이언트 대기</span>
+                <span class="type">Socket</span> socket = server.<span class="fn">accept</span>();
+                ta.<span class="fn">append</span>(<span class="str">"연결 되었습니다.\n"</span>);
+
+                <span class="type">ServerThread</span> st = <span class="kw">new</span> <span class="cls">ServerThread</span>(socket, threadList);
+                threadList.<span class="fn">add</span>(st);                      <span class="cm">// 목록에 추가</span>
+                st.<span class="fn">start</span>();                               <span class="cm">// 스레드 시작</span>
+            }
+        } <span class="kw">catch</span> (<span class="type">IOException</span> e) { e.<span class="fn">printStackTrace</span>(); }
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) {
+        <span class="type">ServerFrame</span> sf = <span class="kw">new</span> <span class="cls">ServerFrame</span>(<span class="str">"Server"</span>, <span class="num">300</span>, <span class="num">400</span>, <span class="num">400</span>, <span class="num">200</span>);
+        sf.<span class="fn">setSocket</span>();
+    }
+}</pre>
+      <div style="padding:1.2rem 1.6rem;border-top:1px solid var(--border)">
+        <table class="ex-table">
+          <thead><tr><th style="width:38%">코드</th><th style="width:12%">분류</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>ArrayList&lt;ServerThread&gt; threadList</code></td>
+              <td><span class="badge b-green">핵심</span></td>
+              <td>접속한 모든 클라이언트 스레드를 보관. ServerThread 생성 시 이 목록을 참조로 전달</td>
+            </tr>
+            <tr>
+              <td><code>while(true) { server.accept() ... }</code></td>
+              <td><span class="badge b-green">핵심</span></td>
+              <td>1:1 버전과의 차이점. 반복문으로 여러 클라이언트 수락 — 각각 ServerThread 생성</td>
+            </tr>
+            <tr>
+              <td><code>new ServerThread(socket, threadList)</code></td>
+              <td><span class="badge b-purple">THREAD</span></td>
+              <td>접속한 소켓과 공유 threadList를 스레드에 전달</td>
+            </tr>
+            <tr>
+              <td><code>threadList.add(st); st.start()</code></td>
+              <td><span class="badge b-purple">THREAD</span></td>
+              <td>목록 추가 후 start(). 추가 후 start 해야 sendToAll 시 포함됨에 주의</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── ChatFrame ── -->
+    <div class="tab-panel" id="cf2-panel">
+      <div class="code-bar">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="dot-row"><span class="d-r"></span><span class="d-y"></span><span class="d-g"></span></div>
+          <span class="filename">ChatFrame<span class="ext">.java</span></span>
+          <span style="font-size:10px;color:var(--blue);background:var(--blue-lt);border:1px solid rgba(37,99,235,.2);border-radius:3px;padding:1px 6px;font-family:var(--mono)">Client</span>
+        </div>
+        <button class="copy-btn" onclick="copyCode('cf2-code',this)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          복사
+        </button>
+      </div>
+      <pre id="cf2-code"><span class="kw2">package</span> inhatc.cse.java.chap17.ex3_multichat;
+
+<span class="kw2">import</span> javax.swing.*;
+<span class="kw2">import</span> java.awt.*;
+<span class="kw2">import</span> java.awt.event.ActionEvent;
+<span class="kw2">import</span> java.awt.event.ActionListener;
+<span class="kw2">import</span> java.io.*;
+<span class="kw2">import</span> java.net.Socket;
+
+<span class="kw">public class</span> <span class="cls">ChatFrame</span> <span class="kw">extends</span> <span class="cls">JFrame</span> <span class="kw">implements</span> <span class="cls">ActionListener</span> {
+
+    <span class="kw">private</span> <span class="type">JPanel</span>    panelCenter, panelSouth;
+    <span class="kw">private</span> <span class="type">JTextField</span> tf;
+    <span class="kw">private</span> <span class="type">JButton</span>    btn;
+    <span class="kw">private</span> <span class="type">JTextArea</span>  ta;
+
+    <span class="kw">private</span> <span class="type">Socket</span>         socket = <span class="kw">null</span>;
+    <span class="kw">private</span> <span class="type">BufferedReader</span>  in     = <span class="kw">null</span>;
+    <span class="kw">private</span> <span class="type">BufferedWriter</span>  out    = <span class="kw">null</span>;
+
+    <span class="kw">public</span> <span class="fn">ChatFrame</span>(String title, <span class="kw">int</span> width, <span class="kw">int</span> height, <span class="kw">int</span> x, <span class="kw">int</span> y) {
+        <span class="fn">setTitle</span>(title);
+        <span class="fn">setDefaultCloseOperation</span>(JFrame.EXIT_ON_CLOSE);
+        <span class="fn">setLocation</span>(x, y);
+        <span class="fn">setSize</span>(width, height);
+        <span class="fn">setLayout</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+        <span class="fn">setCenter</span>(); <span class="fn">setSouth</span>();
+        <span class="fn">setVisible</span>(<span class="kw">true</span>);
+        tf.<span class="fn">requestFocus</span>();
+    }
+
+    <span class="kw">private void</span> <span class="fn">setCenter</span>() {
+        panelCenter = <span class="kw">new</span> <span class="cls">JPanel</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+        ta = <span class="kw">new</span> <span class="cls">JTextArea</span>(<span class="num">7</span>, <span class="num">20</span>);
+        ta.<span class="fn">setEditable</span>(<span class="kw">false</span>); ta.<span class="fn">setLineWrap</span>(<span class="kw">true</span>);
+        panelCenter.<span class="fn">add</span>(<span class="kw">new</span> <span class="cls">JScrollPane</span>(ta,
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
+        <span class="fn">add</span>(panelCenter, BorderLayout.CENTER);
+    }
+
+    <span class="kw">private void</span> <span class="fn">setSouth</span>() {
+        panelSouth = <span class="kw">new</span> <span class="cls">JPanel</span>();
+        tf = <span class="kw">new</span> <span class="cls">JTextField</span>(<span class="num">18</span>); tf.<span class="fn">addActionListener</span>(<span class="kw">this</span>);
+        btn = <span class="kw">new</span> <span class="cls">JButton</span>(<span class="str">"전송"</span>); btn.<span class="fn">addActionListener</span>(<span class="kw">this</span>);
+        panelSouth.<span class="fn">add</span>(tf); panelSouth.<span class="fn">add</span>(btn);
+        <span class="fn">add</span>(panelSouth, BorderLayout.SOUTH);
+    }
+
+    <span class="cm">// ── 이벤트: 전송 버튼 or Enter ──────────────────────────</span>
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">actionPerformed</span>(<span class="type">ActionEvent</span> e) {
+        <span class="kw">if</span>(e.<span class="fn">getSource</span>() == btn || e.<span class="fn">getSource</span>() == tf) {
+            <span class="kw">try</span> {
+                <span class="type">String</span> outMsg = tf.<span class="fn">getText</span>();
+                out.<span class="fn">write</span>(outMsg + <span class="str">"\n"</span>); out.<span class="fn">flush</span>();
+                ta.<span class="fn">append</span>(<span class="str">"[클라이언트] : "</span> + outMsg + <span class="str">"\n"</span>);
+                tf.<span class="fn">setText</span>(<span class="str">""</span>); tf.<span class="fn">requestFocus</span>();
+            } <span class="kw">catch</span> (<span class="type">IOException</span> e1) { e1.<span class="fn">printStackTrace</span>(); }
+        }
+    }
+
+    <span class="cm">// ── 서버 연결 + 수신 루프 ────────────────────────────────</span>
+    <span class="kw">private void</span> <span class="fn">runClient</span>() {
+        <span class="kw">try</span> {
+            socket = <span class="kw">new</span> <span class="cls">Socket</span>(<span class="str">"localhost"</span>, <span class="num">9999</span>);
+            in  = <span class="kw">new</span> <span class="cls">BufferedReader</span>(<span class="kw">new</span> <span class="cls">InputStreamReader</span>(socket.<span class="fn">getInputStream</span>()));
+            out = <span class="kw">new</span> <span class="cls">BufferedWriter</span>(<span class="kw">new</span> <span class="cls">OutputStreamWriter</span>(socket.<span class="fn">getOutputStream</span>()));
+
+            <span class="type">String</span> inMsg;
+            <span class="kw">while</span>(<span class="kw">true</span>) {
+                inMsg = in.<span class="fn">readLine</span>();                  <span class="cm">// 서버로부터 브로드캐스트 수신</span>
+                ta.<span class="fn">append</span>(<span class="str">"[서버] : "</span> + inMsg + <span class="str">"\n"</span>);
+            }
+        } <span class="kw">catch</span> (<span class="type">IOException</span> e) {
+            e.<span class="fn">printStackTrace</span>();
+        } <span class="kw">finally</span> {
+            <span class="kw">try</span> { out.<span class="fn">close</span>(); in.<span class="fn">close</span>(); socket.<span class="fn">close</span>(); }
+            <span class="kw">catch</span> (<span class="type">IOException</span> e) { e.<span class="fn">printStackTrace</span>(); }
+        }
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) {
+        <span class="type">ChatFrame</span> cf = <span class="kw">new</span> <span class="cls">ChatFrame</span>(<span class="str">"Client"</span>, <span class="num">300</span>, <span class="num">400</span>, <span class="num">700</span>, <span class="num">200</span>);
+        cf.<span class="fn">runClient</span>();
+    }
+}</pre>
+      <div style="padding:1.2rem 1.6rem;border-top:1px solid var(--border)">
+        <div class="info-box green">
+          <span class="icon">✅</span>
+          <span>ChatFrame은 이전 1:1 버전과 <strong>동일한 코드</strong>. 멀티 채팅의 변경은 서버 측(ServerFrame + ServerThread)에만 집중됩니다.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 실행 순서 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">05</span>
+      <span class="sec-title">실행 순서 (클라이언트 2명)</span>
+    </div>
+    <div class="card-body">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--accent)">1</div>
+          <div>
+            <div class="flow-title">ServerFrame 실행</div>
+            <div class="flow-desc"><code>ServerFrame.main()</code> → GUI 창 생성 → <code>setSocket()</code> 호출 → <code>while(true) accept()</code> 진입. 채팅창 "연결 대기중....." 표시</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--blue)">2</div>
+          <div>
+            <div class="flow-title">ChatFrame (Client A) 실행</div>
+            <div class="flow-desc">첫 번째 클라이언트 실행 → <code>ServerThread-A</code> 생성 → <code>threadList.add(A)</code> → <code>A.start()</code> → 서버는 다시 <code>accept()</code> 대기</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--purple)">3</div>
+          <div>
+            <div class="flow-title">ChatFrame (Client B) 실행</div>
+            <div class="flow-desc">두 번째 클라이언트 실행 → <code>ServerThread-B</code> 생성 → <code>threadList.add(B)</code> → <code>B.start()</code> → 이제 threadList = [A, B]</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--orange)">4</div>
+          <div>
+            <div class="flow-title">브로드캐스트 동작</div>
+            <div class="flow-desc">A가 메시지 전송 → <code>ServerThread-A.run()</code>의 <code>readLine()</code> 수신 → <code>sendToAllClients()</code> 호출 → threadList[A, B] 전원에게 전달 → B의 화면에도 메시지 표시</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--red)">5</div>
+          <div>
+            <div class="flow-title">클라이언트 종료 (bye)</div>
+            <div class="flow-desc"><code>"bye"</code> 수신 → <code>threadList.remove(this)</code>로 목록 제거 → 스레드 종료. 나머지 클라이언트는 계속 채팅 가능</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 핵심 포인트 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">06</span>
+      <span class="sec-title">핵심 포인트 &amp; 개선 방향</span>
+    </div>
+    <div class="card-body">
+      <div class="point-grid">
+        <div class="point-card">
+          <div class="point-icon">🧵</div>
+          <div class="point-title">스레드 1개 = 클라이언트 1개</div>
+          <div class="point-body">클라이언트가 N명이면 ServerThread도 N개. 각 스레드가 독립적으로 수신 루프 실행</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">📣</div>
+          <div class="point-title">브로드캐스트 패턴</div>
+          <div class="point-body">threadList 순회 → <code>st.out.write()</code>. 공유 목록을 통해 모든 클라이언트에게 메시지 전달</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">⚠️</div>
+          <div class="point-title">동시성 주의</div>
+          <div class="point-body">ArrayList는 thread-safe하지 않음. 실무에서는 <code>CopyOnWriteArrayList</code> 또는 <code>synchronized</code> 사용 권장</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🔗</div>
+          <div class="point-title">out 필드 패키지 접근</div>
+          <div class="point-body"><code>out</code>을 <code>private</code>으로 선언하지 않아 <code>sendToAllClients</code>에서 <code>st.out</code> 직접 접근 가능</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🧹</div>
+          <div class="point-title">정상 종료 처리</div>
+          <div class="point-body">bye 또는 IOException 모두에서 <code>threadList.remove(this)</code> 호출 → 끊긴 클라이언트 제거</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🚀</div>
+          <div class="point-title">확장 아이디어</div>
+          <div class="point-body">닉네임 추가, 입장/퇴장 알림, 귓속말 기능, 채팅방 분리 등으로 발전 가능</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab3(showId, hide1, hide2, tabsId, btn, activeClass) {
+  [showId, hide1, hide2].forEach((id, i) => {
+    document.getElementById(id).classList.toggle('show', i === 0);
+  });
+  document.getElementById(tabsId).querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('a-green','a-purple','a-blue');
+  });
+  btn.classList.add(activeClass);
+}
+function copyCode(id, btn) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = '✓ 복사됨';
+    btn.classList.add('ok');
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 복사';
+      btn.classList.remove('ok');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>

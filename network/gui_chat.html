@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 17-2 · GUI 1:1 소켓 채팅 | Java 강의자료</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #ffffff;
+    --bg2:       #f8fafc;
+    --bg3:       #f1f5f9;
+    --border:    #e2e8f0;
+    --border2:   #cbd5e1;
+    --text:      #0f172a;
+    --text2:     #475569;
+    --text3:     #94a3b8;
+    --accent:    #2563eb;
+    --accent2:   #1d4ed8;
+    --accent-lt: #eff4ff;
+    --green:     #15803d;
+    --green-lt:  #ecfdf5;
+    --orange:    #c2410c;
+    --orange-lt: #fffbeb;
+    --red:       #dc2626;
+    --red-lt:    #fef2f2;
+    --pink:      #be185d;
+    --yellow:    #a16207;
+    --purple:    #6d28d9;
+    --purple-lt: #f5f3ff;
+    --teal:      #0891b2;
+    --teal-lt:   #ecfeff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 2px 6px rgba(15,23,42,0.06);
+    --shadow:    0 2px 6px rgba(15,23,42,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+  }
+
+  /* ── 헤더 ── */
+  .page-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    padding: 2.8rem 3rem 2.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .page-header::after { display: none; }
+  .breadcrumb {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: .8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .breadcrumb span { color: var(--text3); }
+  .step-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(37,99,235,.08);
+    border: 1px solid rgba(37,99,235,.2);
+    border-radius: 4px;
+    padding: 3px 12px;
+    margin-bottom: 1rem;
+  }
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .5rem;
+    line-height: 1.3;
+  }
+  .page-sub { font-size: 14px; color: var(--text2); }
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 1.4rem;
+  }
+  .tag {
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+
+  /* ── 본문 ── */
+  .content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* ── 섹션 카드 ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: .9rem 1.4rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .sec-num {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent);
+    background: var(--accent-lt);
+    border: 1px solid rgba(37,99,235,.2);
+    border-radius: 5px;
+    padding: 2px 8px;
+  }
+  .sec-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .card-body {
+    padding: 1.5rem 1.8rem;
+  }
+
+  /* ── 텍스트 ── */
+  .desc {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.85;
+  }
+  .desc + .desc { margin-top: .6rem; }
+  .desc strong { color: var(--text); font-weight: 600; }
+  .desc code, .inline-code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--orange);
+    background: var(--orange-lt);
+    border: 1px solid rgba(217,119,6,.15);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+
+  /* ── 비교 박스 (콘솔 → GUI) ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr;
+    gap: 0;
+    align-items: start;
+    margin-top: .5rem;
+  }
+  .compare-col {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .compare-head {
+    padding: .6rem 1rem;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .compare-head.before { background: #fef9ec; color: var(--orange); border-bottom: 1px solid #fde68a; }
+  .compare-head.after  { background: var(--accent-lt); color: var(--accent); border-bottom: 1px solid rgba(37,99,235,.15); }
+  .compare-body {
+    padding: .9rem 1rem;
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--text2);
+    line-height: 1.8;
+    background: var(--bg2);
+  }
+  .compare-body .added   { color: var(--green); font-weight: 500; }
+  .compare-body .removed { color: var(--red); text-decoration: line-through; }
+  .compare-body .changed { color: var(--accent); font-weight: 500; }
+  .arrow-mid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--text3);
+    padding-top: 36px;
+  }
+
+  /* ── GUI 구조 미리보기 ── */
+  .gui-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: .5rem;
+  }
+  .window-mock {
+    border: 1.5px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .win-title-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: .5rem .8rem;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+  }
+  .win-title-bar.server { background: #eff4ff; }
+  .win-title-bar.client { background: #ecfdf5; }
+  .win-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .win-dot-r { background: #ff5f57; }
+  .win-dot-y { background: #febc2e; }
+  .win-dot-g { background: #28c840; }
+  .win-body {
+    background: #fff;
+    padding: .8rem;
+  }
+  .mock-textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .6rem .8rem;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text2);
+    height: 90px;
+    margin-bottom: 8px;
+    line-height: 1.7;
+  }
+  .mock-input-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .mock-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .mock-btn {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    color: #fff;
+    cursor: default;
+  }
+  .mock-btn.s { background: var(--accent); }
+  .mock-btn.c { background: var(--green); }
+
+  /* ── 코드 블록 ── */
+  .code-tabs {
+    display: flex;
+    gap: 4px;
+    padding: .8rem 1.2rem .7rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--mono);
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { background: var(--bg3); }
+  .tab-btn.active-blue  { background: var(--accent-lt); color: var(--accent); border-color: rgba(37,99,235,.35); }
+  .tab-btn.active-green { background: var(--green-lt);  color: var(--green);  border-color: rgba(5,150,105,.35); }
+  .tab-panel { display: none; }
+  .tab-panel.show { display: block; }
+
+  .code-card {
+    border-top: none;
+  }
+  .code-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .6rem 1.2rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot-row { display: flex; gap: 5px; }
+  .filename {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .filename .ext { color: var(--accent); }
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-family: var(--mono);
+    padding: 4px 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+  .copy-btn.ok { color: var(--green); border-color: var(--green); background: var(--green-lt); }
+  pre {
+    margin: 0;
+    padding: 1.4rem 1.6rem;
+    background: #1e2235;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.85;
+    tab-size: 4;
+    color: #c9d1e9;
+  }
+  /* 신택스 */
+  .kw   { color: #7dd3fc; font-weight: 500; }
+  .kw2  { color: #a78bfa; }
+  .type { color: #86efac; }
+  .str  { color: #fde68a; }
+  .cm   { color: #6272a4; font-style: italic; }
+  .num  { color: #fb923c; }
+  .fn   { color: #f472b6; }
+  .cls  { color: #34d399; }
+  .ann  { color: #facc15; }
+  .new-code { background: rgba(5,150,105,.12); }
+  .changed-code { background: rgba(37,99,235,.1); }
+
+  /* ── 설명 테이블 ── */
+  .ex-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 1.2rem;
+  }
+  .ex-table th {
+    text-align: left;
+    padding: .55rem .9rem;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text3);
+    background: var(--bg3);
+    border-bottom: 1.5px solid var(--border2);
+  }
+  .ex-table td {
+    padding: .6rem .9rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: top;
+    line-height: 1.65;
+  }
+  .ex-table tr:last-child td { border-bottom: none; }
+  .ex-table tr:hover td { background: var(--bg3); }
+  .ex-table code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--orange);
+    background: var(--orange-lt);
+    border: 1px solid rgba(217,119,6,.12);
+    border-radius: 3px;
+    padding: 1px 5px;
+    white-space: nowrap;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+  .badge-blue   { background: var(--accent-lt); color: var(--accent); border: 1px solid rgba(37,99,235,.2); }
+  .badge-green  { background: var(--green-lt);  color: var(--green);  border: 1px solid rgba(5,150,105,.2); }
+  .badge-purple { background: var(--purple-lt); color: var(--purple); border: 1px solid rgba(124,58,237,.2); }
+  .badge-orange { background: var(--orange-lt); color: var(--orange); border: 1px solid rgba(217,119,6,.2); }
+  .badge-new { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size:9px; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+
+  /* ── 변경 포인트 카드 ── */
+  .change-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: .5rem;
+  }
+  .change-card {
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .change-card-icon {
+    font-size: 22px;
+    margin-bottom: .5rem;
+  }
+  .change-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .3rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .change-card-desc {
+    font-size: 12.5px;
+    color: var(--text2);
+    line-height: 1.65;
+  }
+  .change-card-desc code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--orange);
+    background: var(--orange-lt);
+    border-radius: 3px;
+    padding: 0 4px;
+  }
+  .change-card.blue   { border-color: rgba(37,99,235,.25);  background: var(--accent-lt); }
+  .change-card.green  { border-color: rgba(5,150,105,.25);  background: var(--green-lt); }
+  .change-card.purple { border-color: rgba(124,58,237,.25); background: var(--purple-lt); }
+  .change-card.orange { border-color: rgba(217,119,6,.25);  background: var(--orange-lt); }
+
+  /* ── 실행 흐름 ── */
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: .5rem;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: .9rem 1.1rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: box-shadow .15s;
+  }
+  .flow-step:hover { box-shadow: var(--shadow-sm); }
+  .flow-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; font-family: var(--mono);
+    flex-shrink: 0; margin-top: 1px;
+    color: #fff;
+  }
+  .flow-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .flow-desc  { font-size: 12.5px; color: var(--text2); margin-top: 2px; line-height: 1.6; }
+  .flow-desc code {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--orange); background: var(--orange-lt);
+    border-radius: 3px; padding: 0 4px;
+  }
+
+  /* ── 핵심 포인트 ── */
+  .point-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: .5rem;
+  }
+  .point-card {
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  .point-icon { font-size: 20px; margin-bottom: .4rem; }
+  .point-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: .3rem; }
+  .point-body { font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+  .point-body code {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--orange); background: var(--orange-lt);
+    border-radius: 3px; padding: 0 4px;
+  }
+
+  /* ── 인포 박스 ── */
+  .info-box {
+    display: flex;
+    gap: 10px;
+    padding: .9rem 1.1rem;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-top: 1rem;
+    border: 1px solid;
+  }
+  .info-box.blue   { background: var(--accent-lt); border-color: rgba(37,99,235,.2); color: #1d4ed8; }
+  .info-box.orange { background: var(--orange-lt); border-color: rgba(217,119,6,.2);  color: #92400e; }
+  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="page-header">
+  <div class="breadcrumb">Chapter 17 <span>›</span> 네트워크 프로그래밍 <span>›</span> 실습 2</div>
+  <div class="step-badge">Step 2 of 3 · GUI 적용</div>
+  <h1 class="page-title">소켓 채팅 GUI 구현<br><span style="font-weight:300;font-size:1.5rem">콘솔 → Swing JFrame 으로 전환</span></h1>
+  <p class="page-sub">기존 콘솔 채팅(Server.java / Client.java)을 Swing GUI로 리팩터링 — 1:1 양방향 채팅</p>
+  <div class="tag-row">
+    <span class="tag">JFrame</span>
+    <span class="tag">JTextArea</span>
+    <span class="tag">JTextField</span>
+    <span class="tag">ActionListener</span>
+    <span class="tag">Socket · Port 9999</span>
+    <span class="tag">Thread</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- 01 콘솔 → GUI 변경 핵심 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">01</span>
+      <span class="sec-title">콘솔 → GUI 전환 핵심 변경 사항</span>
+    </div>
+    <div class="card-body">
+      <p class="desc">기존 콘솔 채팅 프로그램은 <code>Scanner</code>로 입력하고 <code>System.out.println()</code>으로 출력했습니다.
+        GUI 버전은 <strong>JFrame + JTextArea + JTextField</strong>로 UI를 구성하고,
+        네트워크 수신은 <strong>별도 스레드</strong>(또는 메인 흐름)에서 처리합니다.</p>
+
+      <div class="change-grid" style="margin-top:1.2rem">
+        <div class="change-card blue">
+          <div class="change-card-icon">🖥</div>
+          <div class="change-card-title">UI 프레임워크</div>
+          <div class="change-card-desc">콘솔 → <code>JFrame</code> 상속. <code>BorderLayout</code>으로 Center(채팅창) + South(입력창) 배치</div>
+        </div>
+        <div class="change-card green">
+          <div class="change-card-icon">⌨️</div>
+          <div class="change-card-title">입력 처리</div>
+          <div class="change-card-desc"><code>Scanner.nextLine()</code> → <code>JTextField</code> + <code>ActionListener</code>. 버튼 클릭 or Enter 로 전송</div>
+        </div>
+        <div class="change-card purple">
+          <div class="change-card-icon">📋</div>
+          <div class="change-card-title">출력 처리</div>
+          <div class="change-card-desc"><code>System.out.println()</code> → <code>JTextArea.append()</code>. 수신 메시지를 채팅창에 누적</div>
+        </div>
+        <div class="change-card orange">
+          <div class="change-card-icon">🔄</div>
+          <div class="change-card-title">수신 루프</div>
+          <div class="change-card-desc"><code>runClient()</code> 메서드 안의 <code>while(true)</code>가 메인에서 호출 — GUI 이벤트 전에 블로킹에 주의</div>
+        </div>
+      </div>
+
+      <div class="compare-grid" style="margin-top:1.4rem">
+        <div class="compare-col">
+          <div class="compare-head before">📟 콘솔 버전 (이전)</div>
+          <div class="compare-body">
+            <div class="removed">Scanner sc = new Scanner(System.in);</div>
+            <div>...</div>
+            <div class="removed">String out = sc.nextLine();</div>
+            <div class="removed">System.out.println("서버>>" + in);</div>
+          </div>
+        </div>
+        <div class="arrow-mid">→</div>
+        <div class="compare-col">
+          <div class="compare-head after">🖥 GUI 버전 (변경)</div>
+          <div class="compare-body">
+            <div class="added">extends JFrame implements ActionListener</div>
+            <div>...</div>
+            <div class="added">String out = tf.getText();</div>
+            <div class="added">ta.append("[서버] : " + inMsg + "\n");</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 GUI 구조 미리보기 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">02</span>
+      <span class="sec-title">GUI 창 구조 미리보기</span>
+    </div>
+    <div class="card-body">
+      <div class="gui-preview">
+        <div class="window-mock">
+          <div class="win-title-bar server">
+            <span class="win-dot win-dot-r"></span><span class="win-dot win-dot-y"></span><span class="win-dot win-dot-g"></span>
+            &nbsp;Server — 포트 9999
+          </div>
+          <div class="win-body">
+            <div class="mock-textarea">연결 대기중.....<br>연결 되었습니다.<br>[서버] : 안녕하세요!<br>[클라이언트] : 반갑습니다.</div>
+            <div class="mock-input-row">
+              <div class="mock-input">메시지를 입력하세요...</div>
+              <div class="mock-btn s">전송</div>
+            </div>
+          </div>
+        </div>
+        <div class="window-mock">
+          <div class="win-title-bar client">
+            <span class="win-dot win-dot-r"></span><span class="win-dot win-dot-y"></span><span class="win-dot win-dot-g"></span>
+            &nbsp;Client — localhost:9999
+          </div>
+          <div class="win-body">
+            <div class="mock-textarea">[클라이언트] : 안녕하세요!<br>[서버] : 반갑습니다.<br>[클라이언트] : 잘 지내세요?</div>
+            <div class="mock-input-row">
+              <div class="mock-input">메시지를 입력하세요...</div>
+              <div class="mock-btn c">전송</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box blue" style="margin-top:1rem">
+        <span class="icon">💡</span>
+        <span>두 프로그램 모두 <strong>JFrame</strong> 기반 동일 레이아웃: 위 = JScrollPane(JTextArea) / 아래 = JPanel(JTextField + 전송버튼)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 소스 코드 탭 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">03</span>
+      <span class="sec-title">소스 코드</span>
+    </div>
+    <div class="code-tabs" id="tabs1">
+      <button class="tab-btn active-blue" onclick="switchTab('server-panel','client-panel','tabs1',this,'active-blue')">ServerFrame.java</button>
+      <button class="tab-btn" onclick="switchTab('client-panel','server-panel','tabs1',this,'active-green')">ChatFrame.java (Client)</button>
+    </div>
+
+    <!-- ServerFrame -->
+    <div class="tab-panel show" id="server-panel">
+      <div class="code-bar">
+        <div class="code-file-info">
+          <div class="dot-row"><span class="win-dot win-dot-r"></span><span class="win-dot win-dot-y"></span><span class="win-dot win-dot-g"></span></div>
+          <span class="filename">ServerFrame<span class="ext">.java</span></span>
+        </div>
+        <button class="copy-btn" onclick="copyCode('sf-code',this)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          복사
+        </button>
+      </div>
+      <pre id="sf-code"><span class="kw2">package</span> inhatc.cse.java.chap17.ex3_multichat;
+
+<span class="kw2">import</span> javax.swing.*;
+<span class="kw2">import</span> java.awt.*;
+<span class="kw2">import</span> java.awt.event.ActionEvent;
+<span class="kw2">import</span> java.awt.event.ActionListener;
+<span class="kw2">import</span> java.io.*;
+<span class="kw2">import</span> java.net.ServerSocket;
+<span class="kw2">import</span> java.net.Socket;
+
+<span class="kw">public class</span> <span class="cls">ServerFrame</span> <span class="kw">extends</span> <span class="cls">JFrame</span> <span class="kw">implements</span> <span class="cls">ActionListener</span> {
+
+    <span class="cm">// ── GUI 컴포넌트 ──────────────────────────────</span>
+    <span class="kw">private</span> <span class="type">JPanel</span>    panelCenter, panelSouth;
+    <span class="kw">private</span> <span class="type">JTextField</span> tf;
+    <span class="kw">private</span> <span class="type">JButton</span>    btn;
+    <span class="kw">private</span> <span class="type">JTextArea</span>  ta;
+
+    <span class="cm">// ── 네트워크 관련 ────────────────────────────</span>
+    <span class="kw">private</span> <span class="type">ServerSocket</span> server = <span class="kw">null</span>;
+    <span class="kw">private</span> <span class="type">BufferedWriter</span> out  = <span class="kw">null</span>;
+
+    <span class="cm">// ── 생성자: 레이아웃 초기화 ─────────────────</span>
+    <span class="kw">public</span> <span class="fn">ServerFrame</span>(String title, <span class="kw">int</span> width, <span class="kw">int</span> height, <span class="kw">int</span> x, <span class="kw">int</span> y) {
+        <span class="fn">setTitle</span>(title);
+        <span class="fn">setDefaultCloseOperation</span>(JFrame.EXIT_ON_CLOSE);
+        <span class="fn">setLocation</span>(x, y);
+        <span class="fn">setSize</span>(width, height);
+        <span class="fn">setLayout</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+        <span class="fn">setCenter</span>();  <span class="fn">setSouth</span>();
+        <span class="fn">setVisible</span>(<span class="kw">true</span>);
+        tf.<span class="fn">requestFocus</span>();
+    }
+
+    <span class="cm">// ── 중앙 패널: JTextArea (수신 메시지 표시) ──</span>
+    <span class="kw">private void</span> <span class="fn">setCenter</span>() {
+        panelCenter = <span class="kw">new</span> <span class="cls">JPanel</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+        ta = <span class="kw">new</span> <span class="cls">JTextArea</span>(<span class="num">7</span>, <span class="num">20</span>);
+        ta.<span class="fn">setEditable</span>(<span class="kw">false</span>);
+        ta.<span class="fn">setLineWrap</span>(<span class="kw">true</span>);
+        <span class="type">JScrollPane</span> sp = <span class="kw">new</span> <span class="cls">JScrollPane</span>(ta,
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        panelCenter.<span class="fn">add</span>(sp);
+        <span class="fn">add</span>(panelCenter, BorderLayout.CENTER);
+    }
+
+    <span class="cm">// ── 하단 패널: JTextField + 전송 버튼 ────────</span>
+    <span class="kw">private void</span> <span class="fn">setSouth</span>() {
+        panelSouth = <span class="kw">new</span> <span class="cls">JPanel</span>();
+        tf = <span class="kw">new</span> <span class="cls">JTextField</span>(<span class="num">18</span>);
+        tf.<span class="fn">addActionListener</span>(<span class="kw">this</span>);   <span class="cm">// Enter 키 이벤트</span>
+        panelSouth.<span class="fn">add</span>(tf);
+        btn = <span class="kw">new</span> <span class="cls">JButton</span>(<span class="str">"전송"</span>);
+        btn.<span class="fn">addActionListener</span>(<span class="kw">this</span>);  <span class="cm">// 버튼 클릭 이벤트</span>
+        panelSouth.<span class="fn">add</span>(btn);
+        <span class="fn">add</span>(panelSouth, BorderLayout.SOUTH);
+    }
+
+    <span class="cm">// ── 이벤트 처리: 전송 버튼 or Enter ──────────</span>
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">actionPerformed</span>(<span class="type">ActionEvent</span> e) {
+        <span class="kw">if</span>(e.<span class="fn">getSource</span>() == btn || e.<span class="fn">getSource</span>() == tf) {
+            <span class="kw">try</span> {
+                <span class="type">String</span> outMsg = tf.<span class="fn">getText</span>();
+                out.<span class="fn">write</span>(outMsg + <span class="str">"\n"</span>);
+                out.<span class="fn">flush</span>();
+                ta.<span class="fn">append</span>(<span class="str">"[서버] : "</span> + outMsg + <span class="str">"\n"</span>);
+                tf.<span class="fn">setText</span>(<span class="str">""</span>);
+                tf.<span class="fn">requestFocus</span>();
+            } <span class="kw">catch</span> (<span class="type">IOException</span> e1) { e1.<span class="fn">printStackTrace</span>(); }
+        }
+    }
+
+    <span class="cm">// ── 소켓 대기 및 연결 처리 ───────────────────</span>
+    <span class="kw">private void</span> <span class="fn">setSocket</span>() {
+        <span class="kw">try</span> {
+            server = <span class="kw">new</span> <span class="cls">ServerSocket</span>(<span class="num">9999</span>);
+            ta.<span class="fn">append</span>(<span class="str">"연결 대기중.....\n"</span>);
+
+            <span class="type">Socket</span> socket = server.<span class="fn">accept</span>();   <span class="cm">// 클라이언트 연결 대기</span>
+            ta.<span class="fn">append</span>(<span class="str">"연결 되었습니다.\n"</span>);
+
+            <span class="type">BufferedReader</span> in = <span class="kw">new</span> <span class="cls">BufferedReader</span>(
+                <span class="kw">new</span> <span class="cls">InputStreamReader</span>(socket.<span class="fn">getInputStream</span>()));
+            out = <span class="kw">new</span> <span class="cls">BufferedWriter</span>(
+                <span class="kw">new</span> <span class="cls">OutputStreamWriter</span>(socket.<span class="fn">getOutputStream</span>()));
+
+            <span class="type">String</span> inMsg;
+            <span class="kw">while</span>(<span class="kw">true</span>) {
+                inMsg = in.<span class="fn">readLine</span>();          <span class="cm">// 클라이언트 메시지 수신</span>
+                <span class="kw">if</span>(inMsg.<span class="fn">equalsIgnoreCase</span>(<span class="str">"bye"</span>)) <span class="kw">break</span>;
+                ta.<span class="fn">append</span>(<span class="str">"[클라이언트] : "</span> + inMsg + <span class="str">"\n"</span>);
+            }
+        } <span class="kw">catch</span> (<span class="type">IOException</span> e) { e.<span class="fn">printStackTrace</span>(); }
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) {
+        <span class="type">ServerFrame</span> sf = <span class="kw">new</span> <span class="cls">ServerFrame</span>(<span class="str">"Server"</span>, <span class="num">300</span>, <span class="num">400</span>, <span class="num">400</span>, <span class="num">200</span>);
+        sf.<span class="fn">setSocket</span>();    <span class="cm">// 창 생성 후 소켓 대기 시작</span>
+    }
+}</pre>
+
+      <!-- ServerFrame 설명 테이블 -->
+      <div style="padding:1.2rem 1.6rem; border-top:1px solid var(--border)">
+        <table class="ex-table">
+          <thead><tr><th style="width:36%">코드</th><th style="width:12%">분류</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>extends JFrame implements ActionListener</code></td>
+              <td><span class="badge badge-blue">GUI</span></td>
+              <td>JFrame 상속으로 창 기능 확보. ActionListener 구현으로 버튼/Enter 이벤트 처리</td>
+            </tr>
+            <tr>
+              <td><code>ta.setEditable(false)</code></td>
+              <td><span class="badge badge-blue">GUI</span></td>
+              <td>채팅창은 읽기 전용. 사용자가 직접 수정 불가 — 메시지는 append()로만 추가</td>
+            </tr>
+            <tr>
+              <td><code>tf.addActionListener(this)</code></td>
+              <td><span class="badge badge-blue">GUI</span></td>
+              <td>JTextField에서 Enter 입력 시 actionPerformed() 호출. 버튼 클릭과 동일하게 동작</td>
+            </tr>
+            <tr>
+              <td><code>ta.append("[서버] : " + outMsg)</code></td>
+              <td><span class="badge badge-blue">GUI</span></td>
+              <td>내가 보낸 메시지도 채팅창에 표시. <code>System.out.println()</code> 역할 대체</td>
+            </tr>
+            <tr>
+              <td><code>server.accept()</code></td>
+              <td><span class="badge badge-purple">SOCKET</span></td>
+              <td>클라이언트 연결될 때까지 블로킹. 연결 후 통신용 Socket 반환</td>
+            </tr>
+            <tr>
+              <td><code>sf.setSocket()</code> — main에서 호출</td>
+              <td><span class="badge badge-orange">주의</span></td>
+              <td>GUI 생성 후 즉시 while(true) 수신 루프 진입 → 이 버전에서는 서버 전송은 GUI 이벤트로, 수신은 메인 흐름에서 처리</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ChatFrame -->
+    <div class="tab-panel" id="client-panel">
+      <div class="code-bar">
+        <div class="code-file-info">
+          <div class="dot-row"><span class="win-dot win-dot-r"></span><span class="win-dot win-dot-y"></span><span class="win-dot win-dot-g"></span></div>
+          <span class="filename">ChatFrame<span class="ext">.java</span></span>
+          <span style="font-size:10px;color:var(--green);background:var(--green-lt);border:1px solid rgba(5,150,105,.2);border-radius:3px;padding:1px 6px;font-family:var(--mono)">Client</span>
+        </div>
+        <button class="copy-btn" onclick="copyCode('cf-code',this)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          복사
+        </button>
+      </div>
+      <pre id="cf-code"><span class="kw2">package</span> inhatc.cse.java.chap17.ex3_multichat;
+
+<span class="kw2">import</span> javax.swing.*;
+<span class="kw2">import</span> java.awt.*;
+<span class="kw2">import</span> java.awt.event.ActionEvent;
+<span class="kw2">import</span> java.awt.event.ActionListener;
+<span class="kw2">import</span> java.io.*;
+<span class="kw2">import</span> java.net.Socket;
+
+<span class="kw">public class</span> <span class="cls">ChatFrame</span> <span class="kw">extends</span> <span class="cls">JFrame</span> <span class="kw">implements</span> <span class="cls">ActionListener</span> {
+
+    <span class="cm">// ── GUI 컴포넌트 ──────────────────────────────</span>
+    <span class="kw">private</span> <span class="type">JPanel</span>    panelCenter, panelSouth;
+    <span class="kw">private</span> <span class="type">JTextField</span> tf;
+    <span class="kw">private</span> <span class="type">JButton</span>    btn;
+    <span class="kw">private</span> <span class="type">JTextArea</span>  ta;
+
+    <span class="cm">// ── 네트워크 관련 ────────────────────────────</span>
+    <span class="kw">private</span> <span class="type">Socket</span>       socket = <span class="kw">null</span>;
+    <span class="kw">private</span> <span class="type">BufferedReader</span> in   = <span class="kw">null</span>;
+    <span class="kw">private</span> <span class="type">BufferedWriter</span> out  = <span class="kw">null</span>;
+
+    <span class="kw">public</span> <span class="fn">ChatFrame</span>(String title, <span class="kw">int</span> width, <span class="kw">int</span> height, <span class="kw">int</span> x, <span class="kw">int</span> y) {
+        <span class="fn">setTitle</span>(title);
+        <span class="fn">setDefaultCloseOperation</span>(JFrame.EXIT_ON_CLOSE);
+        <span class="fn">setLocation</span>(x, y);
+        <span class="fn">setSize</span>(width, height);
+        <span class="fn">setLayout</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+        <span class="fn">setCenter</span>();  <span class="fn">setSouth</span>();
+        <span class="fn">setVisible</span>(<span class="kw">true</span>);
+        tf.<span class="fn">requestFocus</span>();
+    }
+
+    <span class="kw">private void</span> <span class="fn">setCenter</span>() {
+        panelCenter = <span class="kw">new</span> <span class="cls">JPanel</span>(<span class="kw">new</span> <span class="cls">BorderLayout</span>());
+        ta = <span class="kw">new</span> <span class="cls">JTextArea</span>(<span class="num">7</span>, <span class="num">20</span>);
+        ta.<span class="fn">setEditable</span>(<span class="kw">false</span>);
+        ta.<span class="fn">setLineWrap</span>(<span class="kw">true</span>);
+        <span class="type">JScrollPane</span> sp = <span class="kw">new</span> <span class="cls">JScrollPane</span>(ta,
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        panelCenter.<span class="fn">add</span>(sp);
+        <span class="fn">add</span>(panelCenter, BorderLayout.CENTER);
+    }
+
+    <span class="kw">private void</span> <span class="fn">setSouth</span>() {
+        panelSouth = <span class="kw">new</span> <span class="cls">JPanel</span>();
+        tf = <span class="kw">new</span> <span class="cls">JTextField</span>(<span class="num">18</span>);
+        tf.<span class="fn">addActionListener</span>(<span class="kw">this</span>);
+        panelSouth.<span class="fn">add</span>(tf);
+        btn = <span class="kw">new</span> <span class="cls">JButton</span>(<span class="str">"전송"</span>);
+        btn.<span class="fn">addActionListener</span>(<span class="kw">this</span>);
+        panelSouth.<span class="fn">add</span>(btn);
+        <span class="fn">add</span>(panelSouth, BorderLayout.SOUTH);
+    }
+
+    <span class="cm">// ── 이벤트: 전송 버튼 or Enter ───────────────</span>
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">actionPerformed</span>(<span class="type">ActionEvent</span> e) {
+        <span class="kw">if</span>(e.<span class="fn">getSource</span>() == btn || e.<span class="fn">getSource</span>() == tf) {
+            <span class="kw">try</span> {
+                <span class="type">String</span> outMsg = tf.<span class="fn">getText</span>();
+                out.<span class="fn">write</span>(outMsg + <span class="str">"\n"</span>);
+                out.<span class="fn">flush</span>();
+                ta.<span class="fn">append</span>(<span class="str">"[클라이언트] : "</span> + outMsg + <span class="str">"\n"</span>);
+                tf.<span class="fn">setText</span>(<span class="str">""</span>);
+                tf.<span class="fn">requestFocus</span>();
+            } <span class="kw">catch</span> (<span class="type">IOException</span> e1) { e1.<span class="fn">printStackTrace</span>(); }
+        }
+    }
+
+    <span class="cm">// ── 서버 연결 후 수신 루프 ──────────────────</span>
+    <span class="kw">private void</span> <span class="fn">runClient</span>() {
+        <span class="kw">try</span> {
+            socket = <span class="kw">new</span> <span class="cls">Socket</span>(<span class="str">"localhost"</span>, <span class="num">9999</span>);
+            in  = <span class="kw">new</span> <span class="cls">BufferedReader</span>(<span class="kw">new</span> <span class="cls">InputStreamReader</span>(socket.<span class="fn">getInputStream</span>()));
+            out = <span class="kw">new</span> <span class="cls">BufferedWriter</span>(<span class="kw">new</span> <span class="cls">OutputStreamWriter</span>(socket.<span class="fn">getOutputStream</span>()));
+
+            <span class="type">String</span> inMsg;
+            <span class="kw">while</span>(<span class="kw">true</span>) {
+                inMsg = in.<span class="fn">readLine</span>();            <span class="cm">// 서버 응답 수신 (블로킹)</span>
+                ta.<span class="fn">append</span>(<span class="str">"[서버] : "</span> + inMsg + <span class="str">"\n"</span>);
+            }
+        } <span class="kw">catch</span> (<span class="type">IOException</span> e) {
+            e.<span class="fn">printStackTrace</span>();
+        } <span class="kw">finally</span> {
+            <span class="kw">try</span> { out.<span class="fn">close</span>(); in.<span class="fn">close</span>(); socket.<span class="fn">close</span>(); }
+            <span class="kw">catch</span> (<span class="type">IOException</span> e) { e.<span class="fn">printStackTrace</span>(); }
+        }
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(String[] args) {
+        <span class="type">ChatFrame</span> cf = <span class="kw">new</span> <span class="cls">ChatFrame</span>(<span class="str">"Client"</span>, <span class="num">300</span>, <span class="num">400</span>, <span class="num">700</span>, <span class="num">200</span>);
+        cf.<span class="fn">runClient</span>();     <span class="cm">// 창 생성 후 서버 연결 및 수신 루프 시작</span>
+    }
+}</pre>
+
+      <div style="padding:1.2rem 1.6rem; border-top:1px solid var(--border)">
+        <table class="ex-table">
+          <thead><tr><th style="width:36%">코드</th><th style="width:12%">분류</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>new Socket("localhost", 9999)</code></td>
+              <td><span class="badge badge-purple">SOCKET</span></td>
+              <td>서버(localhost, 포트 9999)에 연결 요청. 서버가 먼저 실행되어야 함</td>
+            </tr>
+            <tr>
+              <td><code>out.write(outMsg + "\n")</code></td>
+              <td><span class="badge badge-purple">SOCKET</span></td>
+              <td>actionPerformed()에서 호출. 입력창의 텍스트를 서버로 전송. <code>"\n"</code> 필수</td>
+            </tr>
+            <tr>
+              <td><code>ta.append("[클라이언트] : " + outMsg)</code></td>
+              <td><span class="badge badge-blue">GUI</span></td>
+              <td>내가 보낸 메시지를 즉시 채팅창에 표시. 서버의 응답을 기다리지 않음</td>
+            </tr>
+            <tr>
+              <td><code>inMsg = in.readLine()</code></td>
+              <td><span class="badge badge-purple">SOCKET</span></td>
+              <td>runClient() 안의 while 루프에서 서버 메시지를 계속 수신</td>
+            </tr>
+            <tr>
+              <td><code>cf.runClient()</code> — main에서 호출</td>
+              <td><span class="badge badge-orange">주의</span></td>
+              <td>GUI 생성 직후 수신 루프 진입 — 전송은 이벤트 스레드(EDT)에서, 수신은 메인 스레드에서 처리</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 실행 순서 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">04</span>
+      <span class="sec-title">실행 순서</span>
+    </div>
+    <div class="card-body">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--accent)">1</div>
+          <div>
+            <div class="flow-title">ServerFrame 실행</div>
+            <div class="flow-desc"><code>ServerFrame.main()</code> 실행 → JFrame 창 열림 → <code>setSocket()</code> 호출 → <code>server.accept()</code>에서 대기. 채팅창에 "연결 대기중....." 표시</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--green)">2</div>
+          <div>
+            <div class="flow-title">ChatFrame(Client) 실행</div>
+            <div class="flow-desc"><code>ChatFrame.main()</code> 실행 → JFrame 창 열림 → <code>runClient()</code> 호출 → <code>new Socket("localhost", 9999)</code>로 서버 연결. 서버 창에 "연결 되었습니다." 표시</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--purple)">3</div>
+          <div>
+            <div class="flow-title">클라이언트 → 서버 메시지 전송</div>
+            <div class="flow-desc">클라이언트 입력창에 메시지 입력 후 <strong>전송 버튼</strong> 또는 <strong>Enter</strong> → <code>actionPerformed()</code> 호출 → <code>out.write()</code>로 서버에 전송 → 본인 채팅창에 즉시 표시</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--orange)">4</div>
+          <div>
+            <div class="flow-title">서버 수신 및 응답</div>
+            <div class="flow-desc">서버 <code>in.readLine()</code>으로 수신 → 채팅창 표시 → 서버 입력창에 응답 작성 후 전송 → 클라이언트 <code>in.readLine()</code> 수신 → 채팅창 표시</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box orange" style="margin-top:1rem">
+        <span class="icon">⚠️</span>
+        <span><strong>한계점:</strong> 이 버전은 수신을 메인 스레드에서 처리하므로, 수신 중 GUI가 잠시 응답하지 않을 수 있습니다. 다음 단계(멀티스레드)에서 <code>ServerThread</code>로 개선합니다.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 핵심 포인트 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="sec-num">05</span>
+      <span class="sec-title">핵심 포인트</span>
+    </div>
+    <div class="card-body">
+      <div class="point-grid">
+        <div class="point-card">
+          <div class="point-icon">🏗</div>
+          <div class="point-title">BorderLayout 구조</div>
+          <div class="point-body">CENTER에 JScrollPane(JTextArea), SOUTH에 JPanel(JTextField + 버튼). Swing 채팅 UI의 기본 패턴</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🎧</div>
+          <div class="point-title">ActionListener 이중 등록</div>
+          <div class="point-body"><code>tf</code>와 <code>btn</code> 모두 <code>this</code>를 리스너로 등록. <code>e.getSource()</code>로 어느 쪽 이벤트인지 구분</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">📤</div>
+          <div class="point-title">전송 후 tf 초기화</div>
+          <div class="point-body">전송 후 <code>tf.setText("")</code>로 입력창 비우고 <code>tf.requestFocus()</code>로 포커스 복귀 — UX 향상</div>
+        </div>
+        <div class="point-card">
+          <div class="point-icon">🔒</div>
+          <div class="point-title">out 필드 스코프</div>
+          <div class="point-body"><code>out</code>은 클래스 필드로 선언. <code>setSocket()</code>에서 초기화, <code>actionPerformed()</code>에서 사용 — 메서드 간 공유</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab(showId, hideId, tabsId, btn, activeClass) {
+  document.getElementById(showId).classList.add('show');
+  document.getElementById(hideId).classList.remove('show');
+  const tabs = document.getElementById(tabsId);
+  tabs.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('active-blue','active-green');
+  });
+  btn.classList.add(activeClass);
+}
+function copyCode(id, btn) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = '✓ 복사됨';
+    btn.classList.add('ok');
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 복사';
+      btn.classList.remove('ok');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>
